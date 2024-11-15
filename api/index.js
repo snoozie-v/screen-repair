@@ -3,6 +3,7 @@ const app = express();
 const dotenv = require('dotenv')
 dotenv.config();
 const port = process.env.PORT || 3001
+const path = require('path');
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
