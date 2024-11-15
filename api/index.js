@@ -2,8 +2,7 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv')
 dotenv.config();
-
-const port = 3001
+const port = process.env.PORT || 3001
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,13 +11,10 @@ const cors = require('cors');
 app.use(cors())
 
 const pg = require('pg');
-
-
 const { Pool } = pg
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL
 })
-
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err)
   process.exit(-1)
