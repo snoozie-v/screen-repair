@@ -43,7 +43,7 @@ async function checkEmails() {
     }
   }
 
-app.get("/", async (req, res) => {
+app.get("/api", async (req, res) => {
     const currentDate = new Date();
     console.log(`get request received${currentDate}`)
     try {
@@ -70,6 +70,9 @@ app.get("/", async (req, res) => {
       }
   });
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
+  module.exports = app;
+
+
+// app.listen(port, () => {
+//     console.log(`Server running on http://localhost:${port}`);
+//   });
