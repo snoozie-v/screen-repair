@@ -22,6 +22,7 @@ pool.on('error', (err) => {
   process.exit(-1)
 })
 
+console.log('POSTGRES_URL:', process.env.POSTGRES_URL);
 // const db = new pg.Client({
 //     user: process.env.DB_USER,
 //     host: process.env.DB_HOST,
