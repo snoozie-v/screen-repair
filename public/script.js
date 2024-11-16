@@ -2,7 +2,7 @@ document.getElementById('subscribeForm').addEventListener('submit', function(e) 
     e.preventDefault();
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
-    fetch('http://localhost:3001/add-email', {
+    fetch('https://snoozie.vercel.app/api/add-email', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
