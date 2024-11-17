@@ -57,7 +57,7 @@ app.get("/api", async (req, res) => {
   }
     })
 
-    app.post('/add-email', async (req, res) => {
+    app.post('/api/add-email', async (req, res) => {
       console.log('Received POST request:', req.body)
       const {name, email} = req.body
   
