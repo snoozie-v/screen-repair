@@ -55,27 +55,21 @@ h1,h2 {
 
 #videos {
     display: flex;
+    flex-wrap: wrap; /* Allow items to wrap */
+    justify-content: center; /* Center the items horizontally */
+    gap: 10px; /* Add some space between the flex items */
+    padding: 20px; /* Some padding for better visual appearance */
 }
 
 #videos .twitter-tweet {
-    /* Set a fixed height for all tweets */
-    height: 300px; /* Adjust this value to fit your design */
-    overflow: hidden; /* Hide overflow content to keep the uniform look */
+    flex: 1 0 300px; /* Flex grow, shrink, basis */
+    max-width: 80%; /* Ensure they don't exceed their container's width */
+    height: auto; /* Let the height adjust based on content */
 }
 
-/* This targets the tweet container to ensure uniform width */
-#videos .twitter-tweet .EmbeddedTweet {
-    width: 100%;
-    max-width: none !important; /* Removes any inline max-width restrictions */
-}
-
-/* Adjusting iframe if needed, though X widgets might not use iframe directly */
-#videos .twitter-tweet iframe {
-    height: 100%; /* Make iframe take full height of its container */
-    width: 100%;
-}
-
-/* If you want to ensure videos scale properly within this height */
-#videos .twitter-tweet video {
-    object-fit: cover; /* This will crop but fill the area if necessary */
+/* Media query for screens smaller than 768px (typical mobile breakpoint) */
+@media screen and (max-width: 768px) {
+    #videos .twitter-tweet {
+        flex-basis: 80%; /* Make each tweet take full width of container */
+    }
 }
