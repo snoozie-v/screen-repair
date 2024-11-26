@@ -15,6 +15,44 @@ h1,h2 {
     font-family: 'Montserrat', sans-serif;
 }
 
+#subscribeForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Space between form elements */
+    width: 50%; /* Adjust as needed for responsiveness */
+    max-width: 400px; /* Maximum width for form */
+    margin: auto; /* Center the form horizontally */
+    padding: 20px;
+    background-color: #f7edad; /* Optional: for visual separation */
+    border-radius: 8px;
+}
+
+#subscribeForm label {
+    font-weight: bold;
+}
+
+#subscribeForm input[type="name"],
+#subscribeForm input[type="email"],
+#subscribeForm button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#subscribeForm button {
+    background-color: #007BFF; /* Example color */
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#subscribeForm button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
 #videos {
     display: flex;
 }
