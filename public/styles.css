@@ -26,7 +26,7 @@ h1,h2 {
     max-width: 400px; /* Maximum width for form */
     margin: auto; /* Center the form horizontally */
     padding: 20px;
-    background-color: #f7edad; /* Optional: for visual separation */
+    background-color: #c1f2fb; /* Optional: for visual separation */
     border-radius: 8px;
 }
 
@@ -48,6 +48,7 @@ h1,h2 {
     color: white;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-family: 'Roboto', sans-serif;
 }
 
 #subscribeForm button:hover {
