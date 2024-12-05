@@ -1,3 +1,7 @@
+const currentYear = new Date().getFullYear()
+
+document.getElementById('year').textContent = currentYear;
+
 document.getElementById('subscribeForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const name = document.getElementById('name').value;

@@ -4,6 +4,7 @@ body {
     align-items: center;
     background-color: #d8ead2;
     font-family: 'Lato', sans-serif;
+    width: 100%
 }
 
 #intro {
@@ -11,7 +12,7 @@ body {
     max-width: 690px;
 }
 
-h1,h2, p { 
+h1,h2, h3, h4, p { 
     text-align: center;
     font-family: 'Montserrat', sans-serif;
 }
@@ -19,6 +20,7 @@ h1,h2, p {
 ul li {
     margin-bottom: 5px;
 }
+
 
 #subscribeForm {
     display: flex;
