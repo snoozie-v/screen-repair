@@ -16,6 +16,10 @@ h1,h2, p {
     font-family: 'Montserrat', sans-serif;
 }
 
+ul li {
+    margin-bottom: 5px;
+}
+
 #subscribeForm {
     display: flex;
     flex-direction: column;
