@@ -23,21 +23,19 @@ pool.on('error', (err) => {
 })
 
 console.log('POSTGRES_URL:', process.env.POSTGRES_URL);
-// const db = new pg.Client({
-//     user: process.env.DB_USER,
-//     host: process.env.DB_HOST,
-//     database: process.env.DB_NAME,
-//     password: process.env.DB_PASSWORD,
-//     port: process.env.DB_PORT,
-// });
 
-// db.connect();
-
-async function checkEmails() {
-    const emailQuery = 'SELECT name, email FROM subscribers';
+async function checkEmails() {  // Renamed to checkSubscribers for clarity
+    const subscriberQuery = 'SELECT name, email, phone_number, street_address, city, zipcode FROM subscribers';  // Updated to select new fields
     try {
-      const result = await pool.query(emailQuery);
-      const subscribers = result.rows.map(row => ({ name: row.name, email: row.email }));
+      const result = await pool.query(subscriberQuery);
+      const subscribers = result.rows.map(row => ({
+        name: row.name,
+        email: row.email,
+        phone_number: row.phone_number,  // Added
+        street_address: row.street_address,  // Added
+        city: row.city,  // Added
+        zipcode: row.zipcode  // Added
+      }));
       return subscribers;
     } catch (error) {
       console.error('Error executing query', error);
@@ -47,34 +45,32 @@ async function checkEmails() {
 
 app.get("/api", async (req, res) => {
     const currentDate = new Date();
-    console.log(`get request received${currentDate}`)
+    console.log(`get request received ${currentDate}`)
     try {
-      const subscribers = await checkEmails();
+      const subscribers = await checkEmails();  // Function name updated if renamed
       res.json(subscribers);
     } catch (error) {
-      console.error('Error in / route', error);
+      console.error('Error in /api route', error);
       res.status(500).json({ error: 'Could not retrieve subscriber information' });
+    }
+})
+
+app.post('/api/add-email', async (req, res) => {  // Consider renaming to /api/add-subscriber
+  console.log('Received POST request:', req.body)
+  const { name, email, phone_number, street_address, city, zipcode } = req.body  // Added new fields to destructuring
+
+  const insertSubscriberQuery = `
+    INSERT INTO subscribers(name, email, phone_number, street_address, city, zipcode)
+    VALUES($1, $2, $3, $4, $5, $6)
+    RETURNING *`;  // Updated to insert new fields
+  try {
+      const result = await pool.query(insertSubscriberQuery, [name, email, phone_number, street_address, city, zipcode]);  // Added params
+      const newSubscriber = result.rows[0];  // Return full subscriber object now
+      res.json({ success: true, newSubscriber });
+  } catch (error) {
+      console.error('Error adding new subscriber:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
-    })
+});
 
-    app.post('/api/add-email', async (req, res) => {
-      console.log('Received POST request:', req.body)
-      const {name, email} = req.body
-  
-      const insertSubscriberQuery = 'INSERT INTO subscribers(name, email) VALUES($1, $2) RETURNING *';
-      try {
-          const result = await pool.query(insertSubscriberQuery, [name, email]);
-          const newEmail = result.rows[0].email;
-          res.json({ success: true, newEmail });
-      } catch (error) {
-          console.error('Error adding new subscriber:', error.message);
-          res.status(500).json({ error: 'Internal Server Error' });
-      }
-  });
-
-  module.exports = app;
-
-
-// app.listen(port, () => {
-//     console.log(`Server running on http://localhost:${port}`);
-//   });
+module.exports = app;
