@@ -1,83 +1,215 @@
+/* Define CSS variables for easy theming and maintenance */
+:root {
+    --primary-color: #007BFF; /* Blue for accents/buttons */
+    --secondary-color: #0056b3; /* Darker blue for hover */
+    --background-color: #f0f8ff; /* Softer light blue-ish background for a fresh, modern feel */
+    --form-background: #ffffff; /* White form for contrast and modernity */
+    --text-color: #333333; /* Dark text for readability */
+    --accent-color: #4CAF50; /* Green accent for calls-to-action, tying into 'screen' theme */
+    --shadow-light: rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    --border-radius: 8px; /* Consistent rounding */
+    --transition-speed: 0.3s; /* For smooth animations */
+}
+
+/* Global box-sizing to prevent padding/margin issues causing overflow */
+* {
+    box-sizing: border-box;
+}
+
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #d8ead2;
+    background-color: var(--background-color); /* Updated to a softer, more modern background */
     font-family: 'Lato', sans-serif;
-    width: 100%
+    color: var(--text-color);
+    margin: 0; /* Remove default margins for full-width feel */
+    padding: 20px 0; /* Add vertical padding */
+    line-height: 1.6; /* Improve readability */
+    width: 100%;
+    min-height: 100vh; /* Ensure full viewport height */
+    overflow-x: hidden; /* Prevent horizontal scrolling on thin screens */
 }
 
 #intro {
-    width: 70%;
-    max-width: 690px;
+    width: 90%; /* Wider on mobile, more responsive */
+    max-width: 800px; /* Slightly wider for modern screens */
+    padding: 20px;
+    background-color: white; /* White card-like section for contrast */
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px var(--shadow-light); /* Add subtle shadow for depth and modernity */
+    transition: box-shadow var(--transition-speed); /* Smooth hover effect */
 }
 
-h1,h2, h3, h4, p { 
-    text-align: center;
+#intro:hover {
+    box-shadow: 0 6px 16px var(--shadow-medium); /* Elevate on hover for interactivity */
+}
+
+h1, h2, h3, h4 {
     font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    margin-bottom: 1em; /* Better spacing */
+    color: var(--primary-color); /* Accent color for headings */
+}
+
+h1 {
+    font-size: 2.5rem; /* Larger for impact */
+    margin-top: 0; /* Remove top margin */
+}
+
+h2 {
+    font-size: 1.8rem;
+}
+
+p {
+    text-align: center;
+    font-family: 'Lato', sans-serif; /* Use body font for paragraphs */
+    margin-bottom: 1.5em;
+}
+
+ul {
+    list-style-type: none; /* Remove bullets for a cleaner look */
+    padding: 0;
 }
 
 ul li {
-    margin-bottom: 5px;
+    margin-bottom: 10px; /* Increased spacing */
+    padding-left: 1.5em; /* Indent with pseudo-element */
+    position: relative;
 }
 
+ul li::before {
+    content: '✓'; /* Modern checkmark icon */
+    position: absolute;
+    left: 0;
+    color: var(--accent-color); /* Green check for positivity */
+    font-weight: bold;
+}
+
+.hero-image {
+    width: 100%; /* Ensure it scales with container */
+    max-width: 800px; /* Match #intro max-width for consistency */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Remove any inline spacing issues */
+    margin: 20px auto; /* Center and add spacing below h1 */
+    border-radius: var(--border-radius); /* Optional: rounded corners for modern look */
+    box-shadow: 0 4px 12px var(--shadow-light); /* Subtle shadow for depth */
+    object-fit: cover; /* Ensure image fits nicely within bounds */
+    transition: transform var(--transition-speed); /* Smooth hover effect */
+}
+
+.hero-image:hover {
+    transform: scale(1.02); /* Slight zoom on hover for interactivity */
+}
 
 #subscribeForm {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px; /* Space between form elements */
-    width: 50%; /* Adjust as needed for responsiveness */
-    max-width: 400px; /* Maximum width for form */
-    margin: auto; /* Center the form horizontally */
-    padding: 20px;
-    background-color: #c1f2fb; /* Optional: for visual separation */
-    border-radius: 8px;
+    gap: 15px; /* Increased gap for breathing room */
+    width: 100%; /* Full width on smaller screens */
+    max-width: 400px;
+    margin: 20px auto; /* Better centering */
+    padding: 25px;
+    background-color: var(--form-background);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px var(--shadow-light); /* Shadow for card effect */
+    transition: transform var(--transition-speed); /* Subtle lift on focus */
+}
+
+#subscribeForm:focus-within {
+    transform: translateY(-2px); /* Lift effect when interacting */
 }
 
 #subscribeForm label {
     font-weight: bold;
+    font-size: 0.9rem; /* Slightly smaller for modernity */
+    color: var(--text-color);
+    text-align: left; /* Ensure left alignment for labels */
+    width: 100%; /* Full width to prevent shifting */
 }
 
-#subscribeForm input[type="name"],
-#subscribeForm input[type="email"],
+#subscribeForm input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd; /* Lighter border */
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color var(--transition-speed); /* Smooth focus */
+}
+
+#subscribeForm input:focus {
+    border-color: var(--primary-color); /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Modern focus ring */
+}
+
 #subscribeForm button {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#subscribeForm button {
-    background-color: #007BFF; /* Example color */
+    padding: 12px;
+    background-color: var(--primary-color);
     color: white;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color var(--transition-speed), transform var(--transition-speed);
 }
 
 #subscribeForm button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+    background-color: var(--secondary-color);
+    transform: translateY(-1px); /* Subtle lift on hover */
 }
 
-#videos {
-    display: flex;
-    flex-wrap: wrap; /* Allow items to wrap */
-    justify-content: center; /* Center the items horizontally */
-    gap: 10px; /* Add some space between the flex items */
-    padding: 20px; /* Some padding for better visual appearance */
+#subscribeForm button:active {
+    transform: translateY(0); /* Press down effect */
 }
 
-#videos .twitter-tweet {
-    flex: 1 0 300px; /* Flex grow, shrink, basis */
-    max-width: 80%; /* Ensure they don't exceed their container's width */
-    height: auto; /* Let the height adjust based on content */
+/* Style the footer for a modern, clean look */
+footer {
+    margin-top: auto; /* Push to bottom */
+    padding: 10px 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #666;
+    border-top: 1px solid #eee; /* Subtle divider */
+    width: 100%;
 }
 
-/* Media query for screens smaller than 768px (typical mobile breakpoint) */
+/* Enhanced media queries for responsiveness */
 @media screen and (max-width: 768px) {
-    #videos .twitter-tweet {
-        flex-basis: 80%; /* Make each tweet take full width of container */
+    #intro {
+        width: 95%; /* Fuller width on mobile */
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 2rem; /* Scale down headings */
+    }
+
+    #subscribeForm {
+        max-width: 100%; /* Full width on mobile */
+        padding: 20px 15px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        padding: 10px 0; /* Adjust padding for small screens */
+    }
+
+    #intro {
+        padding: 10px; /* Reduce padding to fit thin screens */
+    }
+
+    #subscribeForm {
+        padding: 15px 10px; /* Further reduce horizontal padding */
+        gap: 10px; /* Smaller gaps for compact feel */
+    }
+
+    #subscribeForm input,
+    #subscribeForm button {
+        padding: 10px; /* Slightly smaller inputs */
     }
 }
