@@ -34,7 +34,7 @@ body {
 
 #intro {
     width: 90%; /* Wider on mobile, more responsive */
-    max-width: 800px; /* Slightly wider for modern screens */
+    max-width: 1200px; /* Slightly wider for modern screens */
     padding: 20px;
     background-color: white; /* White card-like section for contrast */
     border-radius: var(--border-radius);
@@ -45,6 +45,14 @@ body {
 #intro:hover {
     box-shadow: 0 6px 16px var(--shadow-medium); /* Elevate on hover for interactivity */
 }
+
+#intro ul, p {
+    max-width: 75%; 
+    margin: 0 auto; 
+    padding-left: 0; 
+}
+
+
 
 h1, h2, h3, h4 {
     font-family: 'Montserrat', sans-serif;
@@ -89,7 +97,7 @@ ul li::before {
 
 .hero-image {
     width: 100%; /* Ensure it scales with container */
-    max-width: 800px; /* Match #intro max-width for consistency */
+    max-width: 600px; /* Match #intro max-width for consistency */
     height: auto; /* Maintain aspect ratio */
     display: block; /* Remove any inline spacing issues */
     margin: 20px auto; /* Center and add spacing below h1 */
@@ -106,15 +114,15 @@ ul li::before {
 #subscribeForm {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Increased gap for breathing room */
-    width: 100%; /* Full width on smaller screens */
-    max-width: 400px;
-    margin: 20px auto; /* Better centering */
+    gap: 15px; 
+    width: 100%; 
+    max-width: 450px;
+    margin: 20px auto; 
     padding: 25px;
     background-color: var(--form-background);
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px var(--shadow-light); /* Shadow for card effect */
-    transition: transform var(--transition-speed); /* Subtle lift on focus */
+    box-shadow: 0 4px 12px var(--shadow-light); 
+    transition: transform var(--transition-speed); 
 }
 
 #subscribeForm:focus-within {
