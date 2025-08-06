@@ -26,6 +26,13 @@ console.log('POSTGRES_URL:', process.env.POSTGRES_URL);
 
 const nodemailer = require('nodemailer')
 
+console.log('SMTP Config:', {
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE,
+  user: process.env.SMTP_USER
+});
+
 // Create a reusable transporter object using SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
