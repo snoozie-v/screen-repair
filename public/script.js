@@ -11,7 +11,8 @@ document.getElementById('subscribeForm').addEventListener('submit', function(e) 
     const city = document.getElementById('city').value;  // Added
     const zipcode = document.getElementById('zipcode').value;  // Added
     
-    fetch('https://screenfixpro.com/api/add-subscriber', {
+
+    fetch('https://snoozie.vercel.app/api/add-subscriber', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
