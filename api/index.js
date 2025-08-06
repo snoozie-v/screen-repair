@@ -54,19 +54,19 @@ async function checkEmails() {  // Renamed to checkSubscribers for clarity
     }
   }
 
-app.get("/api", async (req, res) => {
-    const currentDate = new Date();
-    console.log(`get request received ${currentDate}`)
-    try {
-      const subscribers = await checkEmails();  // Function name updated if renamed
-      res.json(subscribers);
-    } catch (error) {
-      console.error('Error in /api route', error);
-      res.status(500).json({ error: 'Could not retrieve subscriber information' });
-    }
-})
+// app.get("/api", async (req, res) => {
+//     const currentDate = new Date();
+//     console.log(`get request received ${currentDate}`)
+//     try {
+//       const subscribers = await checkEmails();  // Function name updated if renamed
+//       res.json(subscribers);
+//     } catch (error) {
+//       console.error('Error in /api route', error);
+//       res.status(500).json({ error: 'Could not retrieve subscriber information' });
+//     }
+// })
 
-app.post('/api/add-email', async (req, res) => {
+app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
   const { name, email, phone_number, street_address, city, zipcode } = req.body;
 
