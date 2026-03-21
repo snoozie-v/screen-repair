@@ -60,6 +60,7 @@ async function sendLeadConfirmation(name, email, service_type) {
     window_screen: 'Window Screen Repair',
     door_screen: 'Door Screen Repair',
     porch_patio: 'Porch / Patio Rescreen',
+    multiple: 'Multiple / Whole House',
     not_sure: 'Screen Repair'
   }[service_type] || 'Screen Repair';
 
@@ -106,6 +107,7 @@ async function sendAdminNotification(lead, isInsert) {
     window_screen: 'Window Screen',
     door_screen: 'Door Screen',
     porch_patio: 'Porch / Patio',
+    multiple: 'Multiple / Whole House',
     not_sure: 'Not Sure'
   }[service_type] || service_type || '—';
 
