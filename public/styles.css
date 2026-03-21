@@ -235,6 +235,34 @@ ul li {
     transform: translateY(0); /* Press down effect */
 }
 
+.faq-list {
+    max-width: 75%;
+    margin: 0 auto;
+}
+
+.faq-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 16px 0;
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-item h3 {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin: 0 0 8px;
+    text-align: left;
+}
+
+.faq-item p {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0;
+    text-align: left;
+}
+
 .form-message {
     max-width: 450px;
     margin: 0 auto;
