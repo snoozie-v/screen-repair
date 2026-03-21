@@ -174,6 +174,27 @@ ul li::before {
     transform: translateY(0); /* Press down effect */
 }
 
+.form-message {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.form-message--success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.form-message--error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
 /* Style the footer for a modern, clean look */
 footer {
     margin-top: auto; /* Push to bottom */

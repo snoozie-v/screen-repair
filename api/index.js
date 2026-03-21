@@ -29,12 +29,62 @@ const nodemailer = require('nodemailer')
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_SECURE === 'true',  // true for 465, false for other ports
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   }
 });
+
+async function sendToLoops(contactData, isNewContact) {
+  const { name, email, phone_number, street_address, city, zipcode } = contactData;
+  const firstName = name.split(' ')[0];
+  const lastName = name.split(' ').slice(1).join(' ') || '';
+
+  try {
+    // Create or update contact in Loops
+    await fetch('https://app.loops.so/api/v1/contacts/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.LOOPS_API_KEY}`
+      },
+      body: JSON.stringify({
+        email,
+        firstName,
+        lastName,
+        phone: phone_number,
+        streetAddress: street_address,
+        city,
+        zipcode,
+        source: 'screenfixpro',
+        userGroup: 'lead'
+      })
+    });
+
+    // Fire event to trigger the confirmation loop in Loops
+    await fetch('https://app.loops.so/api/v1/events/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.LOOPS_API_KEY}`
+      },
+      body: JSON.stringify({
+        email,
+        eventName: 'quoteRequested',
+        eventProperties: {
+          city,
+          isNewLead: isNewContact
+        }
+      })
+    });
+
+    console.log('Loops: contact synced and event fired for', email);
+  } catch (err) {
+    console.error('Loops sync failed:', err.message);
+    // Non-blocking — don't let Loops failure affect the response
+  }
+}
 
 async function checkEmails() {  // Renamed to checkSubscribers for clarity
     const subscriberQuery = 'SELECT name, email, phone_number, street_address, city, zipcode FROM subscribers';  // Updated to select new fields
@@ -95,7 +145,10 @@ app.post('/api/add-subscriber', async (req, res) => {
   try {
     const result = await pool.query(insertSubscriberQuery, [name, email, phone_number, street_address, city, zipcode]);
     const newSubscriber = result.rows[0];
-    const isInsert = newSubscriber.is_insert; // True if inserted, false if updated
+    const isInsert = newSubscriber.is_insert;
+
+    // Sync to Loops (non-blocking)
+    sendToLoops({ name, email, phone_number, street_address, city, zipcode }, isInsert);
 
     // Log SMTP configuration for debugging
     console.log('Attempting to send email with config:', {
