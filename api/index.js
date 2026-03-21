@@ -152,8 +152,10 @@ app.post('/api/add-subscriber', async (req, res) => {
     const newSubscriber = result.rows[0];
     const isInsert = newSubscriber.is_insert;
 
-    sendLeadConfirmation(name, email);
-    sendAdminNotification({ name, email, phone_number, street_address, city, zipcode }, isInsert);
+    await Promise.all([
+      sendLeadConfirmation(name, email),
+      sendAdminNotification({ name, email, phone_number, street_address, city, zipcode }, isInsert)
+    ]);
 
     res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated' });
   } catch (error) {
