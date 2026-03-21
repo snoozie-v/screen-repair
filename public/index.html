@@ -65,11 +65,20 @@
         </section>
         <section id="services">
             <h2>Our Services</h2>
-            <ul>
-                <li><strong>Window Screen Repair & Replacement:</strong> Fix tears, holes, or frames for any size using durable, high-quality mesh.</li>
-                <li><strong>Door Screen Repair:</strong> Repair or replace screens on patio, storm, or entry doors for smooth function.</li>
-                <li><strong>Porch & Patio Enclosures:</strong> Rescreen porches, patios, or gazebos; upgrade to pet-resistant or solar-blocking options.</li>
-            </ul>
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3>Window Screens</h3>
+                    <p>Fix tears, holes, or bent frames for any size window using durable, high-quality mesh.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Door Screens</h3>
+                    <p>Repair or replace screens on patio, storm, or entry doors for smooth, reliable function.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Porch &amp; Patio</h3>
+                    <p>Rescreen porches, patios, or gazebos — including pet-resistant and solar-blocking options.</p>
+                </div>
+            </div>
         </section>
         <section id="why">
             <h2>Why Choose Us?</h2>
@@ -102,7 +111,19 @@
                 
                 <label for="zipcode">Zipcode:</label>
                 <input type="text" id="zipcode" name="zipcode" placeholder="Zipcode">
-                
+
+                <label for="service_type">Type of Repair:</label>
+                <select id="service_type" name="service_type" required>
+                    <option value="" disabled selected>Select a service...</option>
+                    <option value="window_screen">Window Screen</option>
+                    <option value="door_screen">Door Screen</option>
+                    <option value="porch_patio">Porch / Patio Rescreen</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+
+                <label for="job_description">Tell us about the job: <span class="optional">(optional)</span></label>
+                <textarea id="job_description" name="job_description" placeholder="e.g. 2 torn window screens, 1 door screen with bent frame..." rows="3"></textarea>
+
                 <button type="submit">Request Free Quote</button>
             </form>
             <div id="formMessage"></div>

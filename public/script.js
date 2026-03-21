@@ -10,6 +10,8 @@ document.getElementById('subscribeForm').addEventListener('submit', function(e) 
     const street_address = document.getElementById('street_address').value;
     const city = document.getElementById('city').value;
     const zipcode = document.getElementById('zipcode').value;
+    const service_type = document.getElementById('service_type').value;
+    const job_description = document.getElementById('job_description').value;
 
     const btn = this.querySelector('button[type="submit"]');
     const msg = document.getElementById('formMessage');
@@ -23,7 +25,7 @@ document.getElementById('subscribeForm').addEventListener('submit', function(e) 
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, phone_number, street_address, city, zipcode }),
+        body: JSON.stringify({ name, email, phone_number, street_address, city, zipcode, service_type, job_description }),
     })
     .then(response => response.json())
     .then(data => {

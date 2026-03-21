@@ -54,8 +54,15 @@ const emailFooter = `
   </div>
 `;
 
-async function sendLeadConfirmation(name, email) {
+async function sendLeadConfirmation(name, email, service_type) {
   const firstName = name.split(' ')[0];
+  const serviceLabel = {
+    window_screen: 'Window Screen Repair',
+    door_screen: 'Door Screen Repair',
+    porch_patio: 'Porch / Patio Rescreen',
+    not_sure: 'Screen Repair'
+  }[service_type] || 'Screen Repair';
+
   try {
     await transporter.sendMail({
       from: `Screen Fix Pro <${process.env.SMTP_USER}>`,
@@ -69,7 +76,7 @@ async function sendLeadConfirmation(name, email) {
               Thanks, ${firstName}!
             </h2>
             <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:1.6;color:#555;">
-              We received your free quote request and will reach out within <strong>24 hours</strong> to schedule a convenient time.
+              We received your <strong>${serviceLabel}</strong> quote request and will reach out within <strong>24 hours</strong> to schedule a convenient time.
             </p>
             <div style="background:#f0f8ff;border-left:4px solid #4CAF50;padding:12px 16px;border-radius:0 4px 4px 0;margin:0 0 20px;">
               <p style="margin:0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#333;line-height:1.5;">
@@ -94,12 +101,19 @@ async function sendLeadConfirmation(name, email) {
 }
 
 async function sendAdminNotification(lead, isInsert) {
-  const { name, email, phone_number, street_address, city, zipcode } = lead;
+  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description } = lead;
+  const serviceLabel = {
+    window_screen: 'Window Screen',
+    door_screen: 'Door Screen',
+    porch_patio: 'Porch / Patio',
+    not_sure: 'Not Sure'
+  }[service_type] || service_type || '—';
+
   try {
     await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: process.env.ADMIN_EMAIL,
-      subject: isInsert ? `New lead: ${name} (${city})` : `Updated lead: ${name} (${city})`,
+      subject: isInsert ? `New lead: ${name} — ${serviceLabel} (${city})` : `Updated lead: ${name} — ${serviceLabel} (${city})`,
       html: `
         <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           ${emailHeader}
@@ -112,6 +126,8 @@ async function sendAdminNotification(lead, isInsert) {
               <tr><td style="padding:8px 0;color:#888;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#007BFF;">${email}</a></td></tr>
               <tr><td style="padding:8px 0;color:#888;">Phone</td><td style="padding:8px 0;"><a href="tel:${phone_number}" style="color:#007BFF;">${phone_number}</a></td></tr>
               <tr><td style="padding:8px 0;color:#888;">Address</td><td style="padding:8px 0;color:#333;">${street_address}<br>${city}, MN ${zipcode}</td></tr>
+              <tr><td style="padding:8px 0;color:#888;">Service</td><td style="padding:8px 0;color:#333;">${serviceLabel}</td></tr>
+              ${job_description ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top;">Notes</td><td style="padding:8px 0;color:#333;">${job_description}</td></tr>` : ''}
             </table>
           </div>
           ${emailFooter}
@@ -126,9 +142,9 @@ async function sendAdminNotification(lead, isInsert) {
 
 app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
-  const { name, email, phone_number, street_address, city, zipcode } = req.body;
+  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description } = req.body;
 
-  if (!name || !email || !phone_number || !street_address || !city || !zipcode) {
+  if (!name || !email || !phone_number || !street_address || !city || !zipcode || !service_type) {
     return res.status(400).json({ error: 'All fields are required' });
   }
   if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -136,25 +152,27 @@ app.post('/api/add-subscriber', async (req, res) => {
   }
 
   const insertQuery = `
-    INSERT INTO subscribers(name, email, phone_number, street_address, city, zipcode)
-    VALUES($1, $2, $3, $4, $5, $6)
+    INSERT INTO subscribers(name, email, phone_number, street_address, city, zipcode, service_type, job_description)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (email) DO UPDATE
     SET name = EXCLUDED.name,
         phone_number = EXCLUDED.phone_number,
         street_address = EXCLUDED.street_address,
         city = EXCLUDED.city,
-        zipcode = EXCLUDED.zipcode
+        zipcode = EXCLUDED.zipcode,
+        service_type = EXCLUDED.service_type,
+        job_description = EXCLUDED.job_description
     RETURNING *, (xmax = 0) AS is_insert;
   `;
 
   try {
-    const result = await pool.query(insertQuery, [name, email, phone_number, street_address, city, zipcode]);
+    const result = await pool.query(insertQuery, [name, email, phone_number, street_address, city, zipcode, service_type, job_description || null]);
     const newSubscriber = result.rows[0];
     const isInsert = newSubscriber.is_insert;
 
     await Promise.all([
-      sendLeadConfirmation(name, email),
-      sendAdminNotification({ name, email, phone_number, street_address, city, zipcode }, isInsert)
+      sendLeadConfirmation(name, email, service_type),
+      sendAdminNotification({ name, email, phone_number, street_address, city, zipcode, service_type, job_description }, isInsert)
     ]);
 
     res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated' });

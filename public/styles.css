@@ -87,12 +87,47 @@ ul li {
     position: relative;
 }
 
-ul li::before {
-    content: '✓'; /* Modern checkmark icon */
+#why ul li::before {
+    content: '✓';
     position: absolute;
     left: 0;
-    color: var(--accent-color); /* Green check for positivity */
+    color: var(--accent-color);
     font-weight: bold;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.service-card {
+    background: var(--background-color);
+    border-top: 3px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+}
+
+.service-card h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    color: var(--primary-color);
+    margin: 0 0 8px;
+    text-align: left;
+}
+
+.service-card p {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0;
+    text-align: left;
+}
+
+@media screen and (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .hero-image {
@@ -146,10 +181,36 @@ ul li::before {
     transition: border-color var(--transition-speed); /* Smooth focus */
 }
 
-#subscribeForm input:focus {
-    border-color: var(--primary-color); /* Highlight on focus */
+#subscribeForm input:focus,
+#subscribeForm select:focus,
+#subscribeForm textarea:focus {
+    border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Modern focus ring */
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+#subscribeForm select,
+#subscribeForm textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Lato', sans-serif;
+    color: var(--text-color);
+    background-color: #fff;
+    transition: border-color var(--transition-speed);
+}
+
+#subscribeForm textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.optional {
+    font-weight: normal;
+    color: #999;
+    font-size: 0.85rem;
 }
 
 #subscribeForm button {
