@@ -185,7 +185,7 @@ app.post('/api/add-subscriber', async (req, res) => {
       sendAdminNotification({ name, email, phone_number, street_address, city, zipcode, service_type, job_description, region }, isInsert)
     ]);
 
-    res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated' });
+    res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated', debug_region: region });
   } catch (error) {
     console.error('Error processing subscriber:', error.message);
     res.status(500).json({ error: 'Internal Server Error' });
