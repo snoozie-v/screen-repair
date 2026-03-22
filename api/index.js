@@ -160,8 +160,8 @@ app.post('/api/add-subscriber', async (req, res) => {
   }
 
   const insertQuery = `
-    INSERT INTO subscribers(name, email, phone_number, street_address, city, zipcode, service_type, job_description)
-    VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO leads(name, email, phone_number, street_address, city, zipcode, service_type, job_description, region)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (email) DO UPDATE
     SET name = EXCLUDED.name,
         phone_number = EXCLUDED.phone_number,
@@ -169,12 +169,13 @@ app.post('/api/add-subscriber', async (req, res) => {
         city = EXCLUDED.city,
         zipcode = EXCLUDED.zipcode,
         service_type = EXCLUDED.service_type,
-        job_description = EXCLUDED.job_description
+        job_description = EXCLUDED.job_description,
+        region = EXCLUDED.region
     RETURNING *, (xmax = 0) AS is_insert;
   `;
 
   try {
-    const result = await pool.query(insertQuery, [name, email, phone_number, street_address, city, zipcode, service_type, job_description || null]);
+    const result = await pool.query(insertQuery, [name, email, phone_number, street_address, city, zipcode, service_type, job_description || null, region || null]);
     const newSubscriber = result.rows[0];
     const isInsert = newSubscriber.is_insert;
 
