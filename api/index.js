@@ -152,6 +152,7 @@ app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
   const { name, email, phone_number, street_address, city, zipcode, service_type, job_description, region } = req.body;
 
+  console.log('region value:', region);
   if (!name || !email || !phone_number || !street_address || !city || !zipcode || !service_type) {
     return res.status(400).json({ error: 'All fields are required' });
   }
