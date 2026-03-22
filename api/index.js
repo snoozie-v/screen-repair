@@ -160,7 +160,7 @@ app.post('/api/add-subscriber', async (req, res) => {
   }
 
   const insertQuery = `
-    INSERT INTO leads(name, email, phone_number, street_address, city, zipcode, service_type, job_description, region)
+    INSERT INTO subscribers(name, email, phone_number, street_address, city, zipcode, service_type, job_description, region)
     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (email) DO UPDATE
     SET name = EXCLUDED.name,
