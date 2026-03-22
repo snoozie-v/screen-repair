@@ -102,7 +102,7 @@ async function sendLeadConfirmation(name, email, service_type) {
 }
 
 async function sendAdminNotification(lead, isInsert) {
-  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description } = lead;
+  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description, region } = lead;
   const serviceLabel = {
     window_screen: 'Window Screen',
     door_screen: 'Door Screen',
@@ -111,10 +111,15 @@ async function sendAdminNotification(lead, isInsert) {
     not_sure: 'Not Sure'
   }[service_type] || service_type || '—';
 
+  const adminEmail = region === 'carlos' && process.env.CARLOS_ADMIN_EMAIL
+    ? process.env.CARLOS_ADMIN_EMAIL
+    : process.env.ADMIN_EMAIL;
+  const regionLabel = region === 'carlos' ? 'Carlos/Alexandria' : 'Lakeville/Twin Cities';
+
   try {
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL,
+      to: adminEmail,
       subject: isInsert ? `New lead: ${name} — ${serviceLabel} (${city})` : `Updated lead: ${name} — ${serviceLabel} (${city})`,
       html: `
         <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
@@ -129,6 +134,7 @@ async function sendAdminNotification(lead, isInsert) {
               <tr><td style="padding:8px 0;color:#888;">Phone</td><td style="padding:8px 0;"><a href="tel:${phone_number}" style="color:#007BFF;">${phone_number}</a></td></tr>
               <tr><td style="padding:8px 0;color:#888;">Address</td><td style="padding:8px 0;color:#333;">${street_address}<br>${city}, MN ${zipcode}</td></tr>
               <tr><td style="padding:8px 0;color:#888;">Service</td><td style="padding:8px 0;color:#333;">${serviceLabel}</td></tr>
+              <tr><td style="padding:8px 0;color:#888;">Region</td><td style="padding:8px 0;color:#333;">${regionLabel}</td></tr>
               ${job_description ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top;">Notes</td><td style="padding:8px 0;color:#333;">${job_description}</td></tr>` : ''}
             </table>
           </div>
@@ -144,7 +150,7 @@ async function sendAdminNotification(lead, isInsert) {
 
 app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
-  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description } = req.body;
+  const { name, email, phone_number, street_address, city, zipcode, service_type, job_description, region } = req.body;
 
   if (!name || !email || !phone_number || !street_address || !city || !zipcode || !service_type) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -174,7 +180,7 @@ app.post('/api/add-subscriber', async (req, res) => {
 
     await Promise.all([
       sendLeadConfirmation(name, email, service_type),
-      sendAdminNotification({ name, email, phone_number, street_address, city, zipcode, service_type, job_description }, isInsert)
+      sendAdminNotification({ name, email, phone_number, street_address, city, zipcode, service_type, job_description, region }, isInsert)
     ]);
 
     res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated' });
