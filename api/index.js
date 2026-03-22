@@ -152,7 +152,6 @@ app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
   const { name, email, phone_number, street_address, city, zipcode, service_type, job_description, region } = req.body;
 
-  console.log('region value:', region);
   if (!name || !email || !phone_number || !street_address || !city || !zipcode || !service_type) {
     return res.status(400).json({ error: 'All fields are required' });
   }
@@ -185,7 +184,7 @@ app.post('/api/add-subscriber', async (req, res) => {
       sendAdminNotification({ name, email, phone_number, street_address, city, zipcode, service_type, job_description, region }, isInsert)
     ]);
 
-    res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated', debug_region: region });
+    res.json({ success: true, newSubscriber, action: isInsert ? 'inserted' : 'updated' });
   } catch (error) {
     console.error('Error processing subscriber:', error.message);
     res.status(500).json({ error: 'Internal Server Error' });
