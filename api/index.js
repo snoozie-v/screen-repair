@@ -148,6 +148,54 @@ async function sendAdminNotification(lead, isInsert) {
   }
 }
 
+app.post('/api/contractor-apply', async (req, res) => {
+  const { name, business_name, email, phone, territories } = req.body;
+
+  if (!name || !email || !territories) {
+    return res.status(400).json({ error: 'Name, email, and territories are required' });
+  }
+  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO contractor_applications(name, business_name, email, phone, territories)
+       VALUES($1, $2, $3, $4, $5)`,
+      [name, business_name || null, email, phone || null, territories]
+    );
+
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New contractor application: ${name}${business_name ? ` (${business_name})` : ''}`,
+      html: `
+        <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          ${emailHeader}
+          <div style="padding:32px;">
+            <h2 style="margin:0 0 20px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:18px;color:#333;">
+              New Contractor Application
+            </h2>
+            <table style="width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;">
+              <tr><td style="padding:8px 0;color:#888;width:130px;">Name</td><td style="padding:8px 0;color:#333;font-weight:600;">${name}</td></tr>
+              ${business_name ? `<tr><td style="padding:8px 0;color:#888;">Business</td><td style="padding:8px 0;color:#333;">${business_name}</td></tr>` : ''}
+              <tr><td style="padding:8px 0;color:#888;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#007BFF;">${email}</a></td></tr>
+              ${phone ? `<tr><td style="padding:8px 0;color:#888;">Phone</td><td style="padding:8px 0;"><a href="tel:${phone}" style="color:#007BFF;">${phone}</a></td></tr>` : ''}
+              <tr><td style="padding:8px 0;color:#888;vertical-align:top;">Territories</td><td style="padding:8px 0;color:#333;">${territories}</td></tr>
+            </table>
+          </div>
+          ${emailFooter}
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Contractor application error:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.post('/api/add-subscriber', async (req, res) => {
   console.log('Received POST request:', req.body);
   const { name, email, phone_number, street_address, city, zipcode, service_type, job_description, region } = req.body;

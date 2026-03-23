@@ -121,8 +121,26 @@
 
         <section id="contact" class="terms-section">
             <h2>Interested?</h2>
-            <p>Email us with your name, business name, and the cities or zip codes you serve. We'll follow up to discuss territory availability and get you set up.</p>
-            <a class="cta-email" href="mailto:info@screenfixpro.com">Email info@screenfixpro.com</a>
+            <p>Fill out the form below and we'll follow up to discuss territory availability and get you set up.</p>
+            <form id="contractorForm">
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" placeholder="First and last name" required>
+
+                <label for="business_name">Business Name: <span class="optional">(optional)</span></label>
+                <input type="text" id="business_name" name="business_name" placeholder="Your business name if applicable">
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+
+                <label for="phone">Phone: <span class="optional">(optional)</span></label>
+                <input type="tel" id="phone" name="phone" placeholder="Best number to reach you">
+
+                <label for="territories">Cities or Zip Codes You Serve:</label>
+                <textarea id="territories" name="territories" placeholder="e.g. Chicago IL, Naperville IL, 60540, 60563..." rows="3" required></textarea>
+
+                <button type="submit">Submit Application</button>
+            </form>
+            <div id="formMessage"></div>
         </section>
     </div>
 
@@ -130,6 +148,7 @@
         <p>&copy; <span id="year"></span> ScreenFixPro. All rights reserved.</p>
     </footer>
 
+    <script src="/contractors/script.js"></script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
