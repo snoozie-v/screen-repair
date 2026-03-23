@@ -27,15 +27,15 @@ form.addEventListener('submit', async (e) => {
 
     if (res.ok && data.success) {
       formMessage.textContent = "Thanks! We'll be in touch shortly to discuss territory availability.";
-      formMessage.className = 'success';
+      formMessage.className = 'form-message form-message--success';
       form.reset();
     } else {
       formMessage.textContent = data.error || 'Something went wrong. Please try again.';
-      formMessage.className = 'error';
+      formMessage.className = 'form-message form-message--error';
     }
   } catch {
     formMessage.textContent = 'Something went wrong. Please try again.';
-    formMessage.className = 'error';
+    formMessage.className = 'form-message form-message--error';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Submit Application';
