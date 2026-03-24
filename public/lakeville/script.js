@@ -25,7 +25,7 @@ document.getElementById('subscribeForm').addEventListener('submit', function(e) 
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, phone_number, street_address, city, zipcode, service_type, job_description, region: 'main' }),
+        body: JSON.stringify({ name, email, phone_number, street_address, city, zipcode, service_type, job_description, region: 'lakeville' }),
     })
     .then(response => response.json())
     .then(data => {
