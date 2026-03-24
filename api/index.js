@@ -395,9 +395,6 @@ app.post('/api/add-subscriber', async (req, res) => {
     const isInsert = newSubscriber.is_insert;
     const lead = { ...newSubscriber, region };
 
-    // Always send customer confirmation
-    sendLeadConfirmation(name, email, service_type).catch(() => {});
-
     // Attempt contractor routing
     const contractor = await getNextContractor(region || 'main', []);
 
@@ -407,10 +404,16 @@ app.post('/api/add-subscriber', async (req, res) => {
         `INSERT INTO lead_routing(lead_id, contractor_id, token) VALUES($1, $2, $3)`,
         [newSubscriber.id, contractor.id, token]
       );
-      sendContractorLeadNotification(contractor, lead, token).catch(() => {});
+      await Promise.all([
+        sendLeadConfirmation(name, email, service_type),
+        sendContractorLeadNotification(contractor, lead, token)
+      ]);
     } else {
       // No contractor for this region — fall back to admin
-      sendAdminNotification(lead, isInsert).catch(() => {});
+      await Promise.all([
+        sendLeadConfirmation(name, email, service_type),
+        sendAdminNotification(lead, isInsert)
+      ]);
     }
 
     res.json({ success: true, action: isInsert ? 'inserted' : 'updated' });
@@ -501,11 +504,11 @@ app.get('/api/lead/reject', async (req, res) => {
         `INSERT INTO lead_routing(lead_id, contractor_id, token) VALUES($1, $2, $3)`,
         [routing.lead_id, nextContractor.id, newToken]
       );
-      sendContractorLeadNotification(nextContractor, lead, newToken).catch(() => {});
+      await sendContractorLeadNotification(nextContractor, lead, newToken);
       res.send(routingResponsePage('Lead Passed', 'No problem — the lead has been routed to the next available contractor.', '#555'));
     } else {
       // All contractors exhausted — notify admin
-      sendAdminNotification(lead, false).catch(() => {});
+      await sendAdminNotification(lead, false);
       res.send(routingResponsePage('Lead Passed', 'No problem — the owner has been notified to follow up directly.', '#555'));
     }
   } catch (err) {
