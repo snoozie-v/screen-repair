@@ -3,7 +3,20 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__claude_ai_Vercel__deploy_to_vercel",
+      "Bash(grep -r \"id.*PRIMARY KEY\\\\|id SERIAL\\\\|id BIGSERIAL\" /Users/chriskimble/Desktop/screen-repair --include=*.js --include=*.sql --include=*.md)",
+      "mcp__claude_ai_Vercel__list_projects",
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/chriskimble/Desktop/screen-repair/**)",
+      "Bash(done)",
+      "Bash(__NEW_LINE_33831a3b85b2166c__ sed:*)",
+      "Bash(sed -i '' 's|South metro mobile service — we come to you|South metro on-site service — we come to you|g' /Users/chriskimble/Desktop/screen-repair/public/index.html)",
+      "Bash(sed -i '' 's|fully mobile service\\\\. We come to you anywhere|fully on-site service. We come to you anywhere|g' /Users/chriskimble/Desktop/screen-repair/public/index.html)",
+      "Bash(grep -rn \"mobile\\\\|Mobile\" /Users/chriskimble/Desktop/screen-repair/public/index.html /Users/chriskimble/Desktop/screen-repair/public/*/index.html)"
     ]
   }
 }

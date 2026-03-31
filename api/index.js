@@ -133,13 +133,13 @@ async function sendAdminNotification(lead, isInsert) {
     await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: adminEmail,
-      subject: isInsert ? `New lead: ${name} — ${serviceLabel} (${city})` : `Updated lead: ${name} — ${serviceLabel} (${city})`,
+      subject: isInsert === 'passed' ? `Lead passed — no contractors available: ${name} — ${serviceLabel} (${city})` : isInsert ? `New lead: ${name} — ${serviceLabel} (${city})` : `Updated lead: ${name} — ${serviceLabel} (${city})`,
       html: `
         <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           ${emailHeader}
           <div style="padding:32px;">
             <h2 style="margin:0 0 20px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:18px;color:#333;">
-              ${isInsert ? '🆕 New Lead' : '🔄 Updated Lead'}
+              ${isInsert === 'passed' ? '📋 Lead Passed — No Contractors Available' : isInsert ? '🆕 New Lead' : '🔄 Updated Lead'}
             </h2>
             <table style="width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;">
               <tr><td style="padding:8px 0;color:#888;width:120px;">Name</td><td style="padding:8px 0;color:#333;font-weight:600;">${name}</td></tr>
@@ -406,7 +406,8 @@ app.post('/api/add-subscriber', async (req, res) => {
       );
       await Promise.all([
         sendLeadConfirmation(name, email, service_type),
-        sendContractorLeadNotification(contractor, lead, token)
+        sendContractorLeadNotification(contractor, lead, token),
+        sendAdminNotification(lead, isInsert)
       ]);
     } else {
       // No contractor for this region — fall back to admin
@@ -508,7 +509,7 @@ app.get('/api/lead/reject', async (req, res) => {
       res.send(routingResponsePage('Lead Passed', 'No problem — the lead has been routed to the next available contractor.', '#555'));
     } else {
       // All contractors exhausted — notify admin
-      await sendAdminNotification(lead, false);
+      await sendAdminNotification(lead, 'passed');
       res.send(routingResponsePage('Lead Passed', 'No problem — the owner has been notified to follow up directly.', '#555'));
     }
   } catch (err) {
