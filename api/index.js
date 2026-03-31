@@ -183,7 +183,7 @@ async function sendContractorLeadNotification(contractor, lead, token) {
               <tr><td style="padding:8px 0;color:#888;">Service</td><td style="padding:8px 0;color:#333;">${serviceLabel}</td></tr>
               ${job_description ? `<tr><td style="padding:8px 0;color:#888;vertical-align:top;">Notes</td><td style="padding:8px 0;color:#333;">${job_description}</td></tr>` : ''}
             </table>
-            <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#555;">Accept to receive the customer's full contact details. Pass if you're unavailable — no charge either way.</p>
+            <p style="margin:0 0 16px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#555;">Accept to receive the customer's full contact details and $15 charge. Pass if you're unavailable.</p>
             <table style="width:100%;border-collapse:collapse;">
               <tr>
                 <td style="padding-right:8px;">
