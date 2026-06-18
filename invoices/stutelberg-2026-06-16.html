@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice — Stacy Stutelberg — Screen Fix Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 3px solid #0d9488;
+    }
+
+    .brand h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #0d9488;
+      letter-spacing: -0.5px;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .invoice-meta {
+      text-align: right;
+    }
+
+    .invoice-meta h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .invoice-meta table {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .invoice-meta td:first-child {
+      text-align: right;
+      padding-right: 8px;
+      color: #999;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .invoice-meta td:last-child {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .parties {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 48px;
+    }
+
+    .party h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .party p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1a1a;
+    }
+
+    table.line-items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+
+    table.line-items thead tr {
+      background: #f0fdfa;
+      border-bottom: 2px solid #0d9488;
+    }
+
+    table.line-items th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #0d9488;
+    }
+
+    table.line-items th:last-child,
+    table.line-items td:last-child {
+      text-align: right;
+    }
+
+    table.line-items td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #1a1a1a;
+    }
+
+    table.line-items tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .totals {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 48px;
+    }
+
+    .totals table {
+      font-size: 14px;
+      min-width: 260px;
+    }
+
+    .totals td {
+      padding: 6px 12px;
+    }
+
+    .totals td:first-child {
+      color: #555;
+    }
+
+    .totals td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .totals tr.total-row td {
+      border-top: 2px solid #0d9488;
+      padding-top: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0d9488;
+    }
+
+    .payment-section {
+      background: #f0fdfa;
+      border-left: 4px solid #0d9488;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .payment-section h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #0d9488;
+      margin-bottom: 10px;
+    }
+
+    .payment-section p {
+      font-size: 14px;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .notes-section {
+      margin-bottom: 48px;
+    }
+
+    .notes-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .notes-section p {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.7;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      border-top: 1px solid #eee;
+      padding-top: 24px;
+    }
+
+    @media print {
+      body { padding: 40px; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <h1>Screen Fix Pro</h1>
+      <p>Window &amp; Door Screen Repair — South Metro, MN</p>
+      <p>info@screenfixpro.com</p>
+      <p>EIN: 42-2268056</p>
+    </div>
+    <div class="invoice-meta">
+      <h2>Invoice</h2>
+      <table>
+        <tr>
+          <td>Invoice #</td>
+          <td>SFP-2026-001</td>
+        </tr>
+        <tr>
+          <td>Date</td>
+          <td>June 16, 2026</td>
+        </tr>
+        <tr>
+          <td>Due</td>
+          <td>Paid</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party">
+      <h3>Billed To</h3>
+      <p>
+        <strong>Stacy Stutelberg</strong><br>
+        5420 Deerfield Circle SE<br>
+        Prior Lake, MN 55372<br>
+        stutelberg@gmail.com<br>
+        (952) 457-4444
+      </p>
+    </div>
+    <div class="party" style="text-align: right;">
+      <h3>Service Location</h3>
+      <p>
+        5420 Deerfield Circle SE<br>
+        Prior Lake, MN 55372
+      </p>
+    </div>
+  </div>
+
+  <table class="line-items">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Unit Price</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <strong>Window/Door Screen Re-screening</strong><br>
+          <span style="font-size:12px; color:#777;">Full re-screening — new mesh and spline. All materials included.</span>
+        </td>
+        <td>20</td>
+        <td>$30.00</td>
+        <td>$600.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <table>
+      <tr>
+        <td>Subtotal</td>
+        <td>$600.00</td>
+      </tr>
+      <tr>
+        <td>Tax</td>
+        <td>$0.00</td>
+      </tr>
+      <tr class="total-row">
+        <td>Total</td>
+        <td>$600.00</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="payment-section">
+    <h3>Payment Received</h3>
+    <p>
+      <strong>$600.00</strong> received via <strong>Check #1362</strong> on June 16, 2026. Thank you!
+    </p>
+  </div>
+
+  <div class="notes-section">
+    <h3>Job Notes</h3>
+    <p>20 screens re-screened — rental property preparation for sale. Smoke-damaged screens replaced with fresh mesh and spline. All screens completed same visit.</p>
+  </div>
+
+  <div class="footer">
+    <p>Thank you for choosing Screen Fix Pro · South Metro Minnesota · info@screenfixpro.com</p>
+  </div>
+
+</body>
+</html>

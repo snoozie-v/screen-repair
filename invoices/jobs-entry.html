@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screen Fix Pro — Job History</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      padding: 32px;
+    }
+
+    h1 { font-size: 22px; color: #2dd4bf; font-weight: 700; }
+    .page-sub { font-size: 13px; color: #555; margin-top: 4px; margin-bottom: 28px; }
+
+    /* ── P&L Summary Bar ── */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      background: #1a1a2e;
+      border: 1px solid #2d2d44;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .stat .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .stat.green .value { color: #34d399; }
+    .stat.teal  .value { color: #2dd4bf; }
+    .stat.red   .value { color: #f87171; }
+    .stat.amber .value { color: #fbbf24; }
+
+    /* ── Jobs Grid ── */
+    .jobs { display: flex; flex-direction: column; gap: 12px; }
+
+    .job-card {
+      background: #1a1a2e;
+      border: 1px solid #2d2d44;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .job-card.turned-away {
+      opacity: 0.55;
+      border-color: #3a1a1a;
+      background: #1a1010;
+    }
+
+    .job-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .job-id {
+      background: #2d2d44;
+      color: #555;
+      font-size: 11px;
+      border-radius: 5px;
+      padding: 3px 7px;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .job-name { font-size: 16px; font-weight: 700; color: #e0e0e0; }
+    .job-date { font-size: 12px; color: #555; margin-top: 2px; }
+
+    .job-desc {
+      font-size: 13px;
+      color: #777;
+      background: #12122a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    .turned-badge {
+      display: inline-block;
+      background: #3a1a1a;
+      color: #f87171;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 5px;
+      padding: 4px 10px;
+      margin-bottom: 8px;
+    }
+
+    .turned-reason {
+      font-size: 12px;
+      color: #555;
+      font-style: italic;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 120px 120px 80px 120px 1fr;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field-group label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .field-group input,
+    .field-group select {
+      width: 100%;
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+
+    .field-group input:focus,
+    .field-group select:focus {
+      outline: none;
+      border-color: #2dd4bf;
+    }
+
+    .field-group.notes { grid-column: span 5; }
+
+    .job-margin {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .job-margin .margin-val {
+      font-weight: 700;
+      color: #34d399;
+      font-size: 15px;
+    }
+
+    /* ── SQL Output ── */
+    .sql-section { margin-top: 36px; }
+
+    .sql-section h2 {
+      font-size: 14px;
+      color: #2dd4bf;
+      margin-bottom: 12px;
+    }
+
+    .btn-generate {
+      background: #0d9488;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 14px;
+    }
+
+    .btn-generate:hover { background: #0f766e; }
+
+    .btn-copy {
+      background: #2d2d44;
+      color: #aaa;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background 0.15s;
+    }
+
+    .btn-copy:hover { background: #3a3a55; color: #e0e0e0; }
+    .btn-copy.copied { background: #064e3b; color: #34d399; }
+
+    textarea#sqlOutput {
+      width: 100%;
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      color: #a3e635;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 16px;
+      min-height: 280px;
+      resize: vertical;
+    }
+
+    /* ── Outreach Section ── */
+    .outreach-section { margin-top: 36px; }
+
+    .outreach-section h2 {
+      font-size: 14px;
+      color: #2dd4bf;
+      margin-bottom: 6px;
+    }
+
+    .outreach-section p {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
+    .outreach-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .outreach-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+
+    .outreach-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #2dd4bf; }
+    .outreach-name { font-weight: 600; min-width: 160px; }
+    .outreach-email { color: #555; flex: 1; }
+    .outreach-job { color: #2dd4bf; font-size: 12px; }
+
+    .btn-draft {
+      background: #1e3a5f;
+      color: #60a5fa;
+      border: 1px solid #1d4ed8;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background 0.15s;
+    }
+
+    .btn-draft:hover { background: #1d4ed8; color: white; }
+
+    .email-draft {
+      margin-top: 14px;
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      padding: 16px;
+      display: none;
+    }
+
+    .email-draft h3 { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+    .email-draft textarea {
+      width: 100%;
+      background: #0f0f1a;
+      border: 1px solid #2d2d44;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 12px;
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #2d2d44;
+      margin: 32px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Screen Fix Pro — Job History</h1>
+<p class="page-sub">Enter what you charged and materials cost for each completed job. Turned-away leads are pre-marked.</p>
+
+<!-- P&L Summary -->
+<div class="summary">
+  <div class="stat teal">
+    <div class="label">Jobs Completed</div>
+    <div class="value" id="s-count">0</div>
+  </div>
+  <div class="stat teal">
+    <div class="label">Total Revenue</div>
+    <div class="value" id="s-revenue">$0</div>
+  </div>
+  <div class="stat red">
+    <div class="label">Total Materials</div>
+    <div class="value" id="s-materials">$0</div>
+  </div>
+  <div class="stat green">
+    <div class="label">Gross Profit</div>
+    <div class="value" id="s-profit">$0</div>
+  </div>
+  <div class="stat amber">
+    <div class="label">Avg Margin</div>
+    <div class="value" id="s-margin">—</div>
+  </div>
+</div>
+
+<!-- Job Cards -->
+<div class="jobs" id="jobList"></div>
+
+<hr class="divider">
+
+<!-- SQL Output -->
+<div class="sql-section">
+  <h2>Generate SQL — paste into Vercel Postgres dashboard</h2>
+  <button class="btn-generate" onclick="generateSQL()">Generate INSERT SQL</button>
+  <button class="btn-copy" id="copyBtn" onclick="copySQL()">Copy</button>
+  <br>
+  <textarea id="sqlOutput" readonly placeholder="Click 'Generate INSERT SQL' above..."></textarea>
+</div>
+
+<hr class="divider">
+
+<!-- Outreach -->
+<div class="outreach-section">
+  <h2>Customer Outreach — Returning Customer Discount</h2>
+  <p>Select completed customers to include in a re-engagement email about additional screens.</p>
+  <div class="outreach-list" id="outreachList"></div>
+  <button class="btn-draft" onclick="showDraft()">Draft Email for Selected</button>
+  <div class="email-draft" id="emailDraft">
+    <h3>Email Draft</h3>
+    <textarea id="emailText"></textarea>
+    <button class="btn-copy" style="margin-top:10px" onclick="copyEmail()">Copy Email</button>
+  </div>
+</div>
+
+<script>
+  const LEADS = [
+    {
+      id: 46, name: 'Lisa Johnson', email: 'li.saann@outlook.com',
+      lead_date: '2026-03-29',
+      desc: 'We cut the screen because it got broken so you probably need to repair the entire screen.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'window', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 50, name: 'Lisa Wadsen', email: 'lisajoan_36@live.com',
+      lead_date: '2026-04-17',
+      desc: 'Need a patio door rescreened and is torn on one side.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 51, name: 'Katie Blair', email: 'zudean@aol.com',
+      lead_date: '2026-04-28',
+      desc: 'Torn screen, bent frame.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'window', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 52, name: 'Ryan Bergeron', email: 'jrbergeron@gmail.com',
+      lead_date: '2026-05-11',
+      desc: 'My 1 patio screen has many tears and needs to be recreated.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 53, name: 'Patrick Cavanaugh', email: 'pjcavmn@yahoo.com',
+      lead_date: '2026-05-12',
+      desc: 'Deck slider screen door rescreen.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 54, name: 'Frank Raasch', email: 'fraasch@gmail.com',
+      lead_date: '2026-05-16',
+      desc: 'Brand new patio screen door that I was setting up for my brother-in-law. Taking it out of the box and installing the screen.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 55, name: 'Lee Kruger', email: 'leeduryea@gmail.com',
+      lead_date: '2026-05-16',
+      desc: '4 porch door screens with torn screen from storm to be replaced and 2 front window screens.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 6, type: 'mixed', payment: 'check', invoice: '', notes: '4 doors + 2 windows'
+    },
+    {
+      id: 56, name: 'Scott Bruns', email: 'sbruns@comcast.net',
+      lead_date: '2026-05-28',
+      desc: 'My patio screen door had a wheel fall off. Not easy to slide open and shut.',
+      status: 'turned_away',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: '', invoice: '', notes: 'Turned away — Chris in Phoenix'
+    },
+    {
+      id: 57, name: 'Oyuna Uranchimeg', email: 'batoyuno@yahoo.com',
+      lead_date: '2026-06-01',
+      desc: 'Need to repair the bottom wheels of a screen door and replace the screen.',
+      status: 'turned_away',
+      revenue: '', materials: '', screens: 1, type: 'door', payment: '', invoice: '', notes: 'Turned away — Chris in Phoenix'
+    },
+    {
+      id: 58, name: 'Michael Carr', email: 'blitzglenn01@gmail.com',
+      lead_date: '2026-06-04',
+      desc: '11 screens on 3 season porch.',
+      status: 'turned_away',
+      revenue: '', materials: '', screens: 11, type: 'window', payment: '', invoice: '', notes: 'Turned away — Chris in Phoenix'
+    },
+    {
+      id: 59, name: 'Andrew Norris', email: 'Amnorr14@gmail.com',
+      lead_date: '2026-06-13',
+      desc: 'Torn screen from a cat.',
+      status: 'completed',
+      revenue: '', materials: '', screens: 1, type: 'window', payment: 'check', invoice: '', notes: ''
+    },
+    {
+      id: 60, name: 'Stacy Stutelberg', email: 'stutelberg@gmail.com',
+      lead_date: '2026-06-15',
+      desc: '20 screens needing re-screening from rental where tenants smoked cigs. Want to list property for sale soon. (Add-on: 1 back screen door)',
+      status: 'completed',
+      revenue: '655', materials: '', screens: 21, type: 'mixed', payment: 'check', invoice: 'SFP-2026-001', notes: '20 window screens @$30 + 1 door @$55. Two visits.'
+    },
+  ];
+
+  // ── Render Cards ──
+  function renderCards() {
+    const container = document.getElementById('jobList');
+    container.innerHTML = '';
+    LEADS.forEach((lead, idx) => {
+      const card = document.createElement('div');
+      card.className = 'job-card' + (lead.status === 'turned_away' ? ' turned-away' : '');
+
+      const completedDefault = lead.lead_date; // fallback guess
+
+      if (lead.status === 'turned_away') {
+        card.innerHTML = `
+          <div class="job-header">
+            <div class="job-id">#${lead.id}</div>
+            <div>
+              <div class="job-name">${lead.name}</div>
+              <div class="job-date">Lead: ${fmtDate(lead.lead_date)}</div>
+            </div>
+          </div>
+          <div class="job-desc">${lead.desc}</div>
+          <div class="turned-badge">Turned Away</div>
+          <div class="turned-reason">${lead.notes}</div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="job-header">
+            <div class="job-id">#${lead.id}</div>
+            <div>
+              <div class="job-name">${lead.name}</div>
+              <div class="job-date">Lead: ${fmtDate(lead.lead_date)}</div>
+            </div>
+            <div style="margin-left:auto;font-size:13px;color:#34d399;font-weight:700;" id="margin-${idx}"></div>
+          </div>
+          <div class="job-desc">${lead.desc}</div>
+          <div class="fields">
+            <div class="field-group">
+              <label>Date Completed</label>
+              <input type="date" value="${lead.completed_date || lead.lead_date}"
+                onchange="setField(${idx},'completed_date',this.value)" oninput="setField(${idx},'completed_date',this.value)">
+            </div>
+            <div class="field-group">
+              <label>Revenue ($)</label>
+              <input type="number" min="0" step="0.01" value="${lead.revenue}" placeholder="0.00"
+                onchange="setField(${idx},'revenue',this.value)" oninput="setField(${idx},'revenue',this.value)">
+            </div>
+            <div class="field-group">
+              <label>Materials ($)</label>
+              <input type="number" min="0" step="0.01" value="${lead.materials}" placeholder="0.00"
+                onchange="setField(${idx},'materials',this.value)" oninput="setField(${idx},'materials',this.value)">
+            </div>
+            <div class="field-group">
+              <label>Screens</label>
+              <input type="number" min="0" value="${lead.screens}"
+                onchange="setField(${idx},'screens',this.value)" oninput="setField(${idx},'screens',this.value)">
+            </div>
+            <div class="field-group">
+              <label>Type</label>
+              <select onchange="setField(${idx},'type',this.value)">
+                <option value="window" ${lead.type==='window'?'selected':''}>Window</option>
+                <option value="door"   ${lead.type==='door'?'selected':''}>Door</option>
+                <option value="mixed"  ${lead.type==='mixed'?'selected':''}>Mixed</option>
+                <option value="repair" ${lead.type==='repair'?'selected':''}>Repair Only</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Payment</label>
+              <select onchange="setField(${idx},'payment',this.value)">
+                <option value="check"  ${lead.payment==='check'?'selected':''}>Check</option>
+                <option value="cash"   ${lead.payment==='cash'?'selected':''}>Cash</option>
+                <option value="venmo"  ${lead.payment==='venmo'?'selected':''}>Venmo</option>
+                <option value="card"   ${lead.payment==='card'?'selected':''}>Card</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Invoice #</label>
+              <input type="text" value="${lead.invoice}" placeholder="SFP-2026-XXX"
+                onchange="setField(${idx},'invoice',this.value)" oninput="setField(${idx},'invoice',this.value)">
+            </div>
+            <div class="field-group notes" style="grid-column:span 5">
+              <label>Notes</label>
+              <input type="text" value="${lead.notes}" placeholder="Any notes..."
+                onchange="setField(${idx},'notes',this.value)" oninput="setField(${idx},'notes',this.value)">
+            </div>
+          </div>
+        `;
+      }
+      container.appendChild(card);
+    });
+    renderOutreach();
+    updateSummary();
+  }
+
+  function setField(idx, field, value) {
+    LEADS[idx][field] = value;
+    updateMargin(idx);
+    updateSummary();
+  }
+
+  function updateMargin(idx) {
+    const lead = LEADS[idx];
+    const el = document.getElementById(`margin-${idx}`);
+    if (!el) return;
+    const rev = parseFloat(lead.revenue) || 0;
+    const mat = parseFloat(lead.materials) || 0;
+    if (rev > 0) {
+      const profit = rev - mat;
+      const pct = Math.round((profit / rev) * 100);
+      el.textContent = `$${profit.toFixed(0)} profit · ${pct}% margin`;
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  function updateSummary() {
+    const completed = LEADS.filter(l => l.status === 'completed');
+    let totalRev = 0, totalMat = 0, count = 0;
+    completed.forEach((l, i) => {
+      const rev = parseFloat(l.revenue) || 0;
+      const mat = parseFloat(l.materials) || 0;
+      if (rev > 0) { totalRev += rev; totalMat += mat; count++; }
+      // update per-card margin too
+      const globalIdx = LEADS.indexOf(l);
+      updateMargin(globalIdx);
+    });
+    const profit = totalRev - totalMat;
+    const margin = totalRev > 0 ? Math.round((profit / totalRev) * 100) : 0;
+
+    document.getElementById('s-count').textContent = completed.length;
+    document.getElementById('s-revenue').textContent = '$' + totalRev.toFixed(0);
+    document.getElementById('s-materials').textContent = '$' + totalMat.toFixed(0);
+    document.getElementById('s-profit').textContent = '$' + profit.toFixed(0);
+    document.getElementById('s-margin').textContent = count > 0 ? margin + '%' : '—';
+  }
+
+  // ── SQL Generation ──
+  function generateSQL() {
+    const lines = [
+      '-- Jobs table INSERT statements',
+      '-- Run in Vercel Postgres dashboard after creating the table with jobs-setup.sql',
+      '',
+    ];
+
+    LEADS.forEach(lead => {
+      const rev = lead.revenue ? parseFloat(lead.revenue).toFixed(2) : 'NULL';
+      const mat = lead.materials ? parseFloat(lead.materials).toFixed(2) : 'NULL';
+      const screens = lead.screens || 'NULL';
+      const date = lead.completed_date || lead.lead_date;
+      const notes = (lead.notes || '').replace(/'/g, "''");
+      const invoice = (lead.invoice || '').replace(/'/g, "''");
+      const type = lead.type || 'window';
+      const payment = lead.payment ? `'${lead.payment}'` : 'NULL';
+
+      lines.push(
+        `INSERT INTO jobs (subscriber_id, status, completed_date, revenue, materials_cost, screens_count, job_type, payment_method, invoice_number, notes)` +
+        ` VALUES (${lead.id}, '${lead.status}', '${date}', ${rev}, ${mat}, ${screens}, '${type}', ${payment}, ${invoice ? `'${invoice}'` : 'NULL'}, ${notes ? `'${notes}'` : 'NULL'});`
+      );
+    });
+
+    lines.push('');
+    lines.push('-- Verify');
+    lines.push('SELECT j.id, s.name, j.status, j.completed_date, j.revenue, j.materials_cost,');
+    lines.push('       (j.revenue - j.materials_cost) AS gross_profit,');
+    lines.push('       ROUND(((j.revenue - j.materials_cost) / j.revenue) * 100, 1) AS margin_pct');
+    lines.push('FROM jobs j JOIN subscribers s ON s.id = j.subscriber_id');
+    lines.push('ORDER BY j.completed_date;');
+
+    document.getElementById('sqlOutput').value = lines.join('\n');
+  }
+
+  function copySQL() {
+    const ta = document.getElementById('sqlOutput');
+    ta.select();
+    document.execCommand('copy');
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }
+
+  // ── Outreach ──
+  function renderOutreach() {
+    const container = document.getElementById('outreachList');
+    container.innerHTML = '';
+    LEADS.filter(l => l.status === 'completed').forEach(lead => {
+      const row = document.createElement('div');
+      row.className = 'outreach-row';
+      const jobSummary = lead.screens > 1
+        ? `${lead.screens} screens (${lead.type})`
+        : `1 ${lead.type} screen`;
+      row.innerHTML = `
+        <input type="checkbox" id="oc-${lead.id}" checked>
+        <div class="outreach-name">${lead.name}</div>
+        <div class="outreach-email">${lead.email}</div>
+        <div class="outreach-job">${jobSummary} · ${fmtDate(lead.lead_date)}</div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function showDraft() {
+    const selected = LEADS.filter(l => {
+      const cb = document.getElementById(`oc-${l.id}`);
+      return cb && cb.checked;
+    });
+
+    if (selected.length === 0) {
+      alert('Select at least one customer.');
+      return;
+    }
+
+    const names = selected.map(l => l.name.split(' ')[0]);
+    const emailText = `Subject: A discount for Screen Fix Pro customers
+
+Hi [First Name],
+
+I wanted to reach out personally — you worked with Screen Fix Pro earlier this year and I really appreciated your business.
+
+As a returning customer, I'd like to offer you 10% off any additional screen repair or re-screening work. Whether you have more screens around the house that need attention, a screen door that's been on the to-do list, or a neighbor who could use the help, I'm happy to extend the discount.
+
+Just reply to this email or give me a call and I'll get you scheduled.
+
+Thanks again,
+Chris
+Screen Fix Pro
+info@screenfixpro.com
+
+---
+Customers to send to:
+${selected.map(l => `${l.name} <${l.email}>`).join('\n')}`;
+
+    document.getElementById('emailText').value = emailText;
+    document.getElementById('emailDraft').style.display = 'block';
+  }
+
+  function copyEmail() {
+    const ta = document.getElementById('emailText');
+    ta.select();
+    document.execCommand('copy');
+  }
+
+  // ── Helpers ──
+  function fmtDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[m-1]} ${day}, ${y}`;
+  }
+
+  // Init
+  renderCards();
+</script>
+</body>
+</html>

@@ -518,4 +518,67 @@ app.get('/api/lead/reject', async (req, res) => {
   }
 });
 
+// --- Admin report endpoint ---
+
+app.get('/api/report', async (req, res) => {
+  const key = req.query.key;
+  if (!key || key !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const [jobsResult, materialsResult, inventoryResult] = await Promise.all([
+      pool.query(`
+        SELECT
+          j.id, j.status, j.completed_date, j.revenue, j.materials_cost,
+          j.screens_count, j.job_type, j.payment_method, j.invoice_number, j.notes,
+          s.name, s.email, s.phone_number, s.street_address, s.city, s.zipcode,
+          s.service_type, s.job_description, s.created_at AS lead_date
+        FROM jobs j
+        JOIN subscribers s ON s.id = j.subscriber_id
+        ORDER BY j.completed_date ASC
+      `),
+      pool.query(`
+        SELECT * FROM materials_purchases ORDER BY purchase_date ASC
+      `),
+      pool.query(`
+        SELECT COALESCE(SUM(amount), 0) AS total_spent FROM materials_purchases
+      `)
+    ]);
+
+    const jobs = jobsResult.rows;
+    const completedJobs = jobs.filter(j => j.status === 'completed');
+    const totalRevenue = completedJobs.reduce((sum, j) => sum + parseFloat(j.revenue || 0), 0);
+    const totalMaterialsSpent = parseFloat(inventoryResult.rows[0].total_spent);
+    const grossProfit = totalRevenue - totalMaterialsSpent;
+
+    res.json({
+      jobs,
+      materials: {
+        purchases: materialsResult.rows,
+        total_spent: totalMaterialsSpent
+      },
+      inventory: {
+        screen_ft_on_hand: 75,
+        spline_ft_on_hand: 75,
+        replenishment_per_100ft: 66.50
+      },
+      summary: {
+        total_revenue: totalRevenue,
+        total_materials_spent: totalMaterialsSpent,
+        gross_profit: grossProfit,
+        gross_margin_pct: totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 1000) / 10 : 0,
+        jobs_completed: completedJobs.length,
+        jobs_turned_away: jobs.filter(j => j.status === 'turned_away').length,
+        avg_revenue_per_job: completedJobs.filter(j => j.revenue > 0).length > 0
+          ? Math.round(totalRevenue / completedJobs.filter(j => j.revenue > 0).length * 100) / 100
+          : 0
+      }
+    });
+  } catch (err) {
+    console.error('Report endpoint error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = app;

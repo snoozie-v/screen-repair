@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screen Fix Pro — P&L Report</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #0f0f1a; color: #e0e0e0; }
+
+    .login-screen {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    }
+    .login-box {
+      background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 12px;
+      padding: 40px; width: 360px; text-align: center;
+    }
+    .login-box h1 { font-size: 20px; color: #2dd4bf; margin-bottom: 6px; }
+    .login-box p { font-size: 13px; color: #555; margin-bottom: 24px; }
+    .login-box input {
+      width: 100%; background: #12122a; border: 1px solid #2d2d44; border-radius: 8px;
+      color: #e0e0e0; font-size: 15px; padding: 12px 14px; margin-bottom: 12px;
+    }
+    .login-box input:focus { outline: none; border-color: #2dd4bf; }
+    .btn-login {
+      width: 100%; background: #0d9488; color: white; border: none; border-radius: 8px;
+      padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-login:hover { background: #0f766e; }
+    .login-error { color: #f87171; font-size: 13px; margin-top: 10px; display: none; }
+
+    .dashboard { display: none; padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .page-header h1 { font-size: 22px; color: #2dd4bf; font-weight: 700; }
+    .page-header .meta { font-size: 12px; color: #555; margin-top: 3px; }
+
+    .btn-refresh {
+      background: #2d2d44; color: #aaa; border: none; border-radius: 8px;
+      padding: 10px 16px; font-size: 13px; cursor: pointer;
+    }
+    .btn-refresh:hover { background: #3a3a55; color: #e0e0e0; }
+
+    /* Summary cards */
+    .summary {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 32px;
+    }
+    .stat {
+      background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px; padding: 18px 20px;
+    }
+    .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 8px; }
+    .stat .value { font-size: 26px; font-weight: 700; }
+    .stat .sub { font-size: 12px; color: #555; margin-top: 4px; }
+    .stat.teal .value { color: #2dd4bf; }
+    .stat.green .value { color: #34d399; }
+    .stat.red .value { color: #f87171; }
+    .stat.amber .value { color: #fbbf24; }
+    .stat.blue .value { color: #60a5fa; }
+
+    /* Sections */
+    .section { margin-bottom: 36px; }
+    .section-title {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #2dd4bf;
+      margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #2d2d44;
+    }
+
+    /* Jobs table */
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #12122a; }
+    th {
+      padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #555; font-weight: 600;
+    }
+    th:last-child, td:last-child { text-align: right; }
+    td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid #1a1a2e; }
+    tr:hover td { background: #1a1a2e; }
+
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; border-radius: 4px; padding: 3px 8px;
+    }
+    .badge.completed { background: #064e3b; color: #34d399; }
+    .badge.turned_away { background: #3a1a1a; color: #f87171; }
+    .badge.upcoming { background: #1e3a5f; color: #60a5fa; }
+
+    .profit-cell { font-weight: 700; }
+    .profit-pos { color: #34d399; }
+    .profit-neg { color: #f87171; }
+
+    /* Materials */
+    .materials-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .materials-table td:first-child { color: #777; }
+
+    /* Inventory bar */
+    .inventory-card {
+      background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px; padding: 20px 24px;
+    }
+    .inventory-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: #e0e0e0; }
+    .inv-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px;
+    }
+    .inv-label { min-width: 90px; color: #777; }
+    .inv-bar-wrap { flex: 1; background: #12122a; border-radius: 4px; height: 8px; overflow: hidden; }
+    .inv-bar { height: 100%; border-radius: 4px; background: #0d9488; transition: width 0.3s; }
+    .inv-val { min-width: 50px; text-align: right; font-weight: 600; color: #2dd4bf; }
+    .inv-note { font-size: 12px; color: #555; margin-top: 10px; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px; color: #555; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>Screen Fix Pro</h1>
+    <p>P&L Dashboard — Admin Only</p>
+    <input type="text" id="apiUrlInput" placeholder="API URL (e.g. https://www.screenfixpro.com)" value="https://www.screenfixpro.com">
+    <input type="password" id="keyInput" placeholder="Admin key" onkeydown="if(event.key==='Enter') login()">
+    <button class="btn-login" onclick="login()">View Report</button>
+    <div class="login-error" id="loginError">Incorrect key or unreachable API.</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+  <div class="page-header">
+    <div>
+      <h1>Screen Fix Pro — P&L Report</h1>
+      <div class="meta" id="reportMeta"></div>
+    </div>
+    <button class="btn-refresh" onclick="loadReport()">Refresh</button>
+  </div>
+
+  <div id="dashContent"><div class="loading">Loading...</div></div>
+</div>
+
+<script>
+  let API_BASE = '';
+  let ADMIN_KEY = '';
+
+  function login() {
+    API_BASE = document.getElementById('apiUrlInput').value.replace(/\/$/, '');
+    ADMIN_KEY = document.getElementById('keyInput').value.trim();
+    if (!ADMIN_KEY) { showLoginError(); return; }
+    loadReport();
+  }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg || 'Incorrect key or unreachable API.';
+    el.style.display = 'block';
+  }
+
+  async function loadReport() {
+    try {
+      const res = await fetch(`${API_BASE}/api/report?key=${encodeURIComponent(ADMIN_KEY)}`);
+      if (res.status === 401) { showLoginError('Incorrect admin key.'); return; }
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('reportMeta').textContent = `Last updated ${new Date().toLocaleString()}`;
+      renderDashboard(data);
+    } catch (e) {
+      showLoginError('Could not reach API. Check the URL.');
+    }
+  }
+
+  function renderDashboard(data) {
+    const { jobs, materials, inventory, summary } = data;
+    const today = new Date().toISOString().split('T')[0];
+
+    const html = `
+      <!-- Summary -->
+      <div class="summary">
+        <div class="stat teal">
+          <div class="label">Total Revenue</div>
+          <div class="value">${fmt$(summary.total_revenue)}</div>
+          <div class="sub">${summary.jobs_completed} jobs completed</div>
+        </div>
+        <div class="stat red">
+          <div class="label">Materials Spent</div>
+          <div class="value">${fmt$(summary.total_materials_spent)}</div>
+          <div class="sub">Pool cost, all receipts</div>
+        </div>
+        <div class="stat green">
+          <div class="label">Gross Profit</div>
+          <div class="value">${fmt$(summary.gross_profit)}</div>
+          <div class="sub">&nbsp;</div>
+        </div>
+        <div class="stat amber">
+          <div class="label">Gross Margin</div>
+          <div class="value">${summary.gross_margin_pct}%</div>
+          <div class="sub">Revenue – materials</div>
+        </div>
+        <div class="stat blue">
+          <div class="label">Avg Revenue / Job</div>
+          <div class="value">${fmt$(summary.avg_revenue_per_job)}</div>
+          <div class="sub">${summary.jobs_turned_away} turned away</div>
+        </div>
+      </div>
+
+      <!-- Jobs -->
+      <div class="section">
+        <div class="section-title">Job History</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>City</th>
+              <th>Job</th>
+              <th>Screens</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Revenue</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${jobs.map(j => {
+              const isUpcoming = j.status === 'completed' && j.completed_date > today;
+              const statusClass = isUpcoming ? 'upcoming' : j.status;
+              const statusLabel = isUpcoming ? 'Upcoming' : j.status === 'completed' ? 'Completed' : 'Turned Away';
+              return `
+                <tr>
+                  <td>${fmtDate(j.completed_date)}</td>
+                  <td><strong>${j.name}</strong><br><span style="font-size:11px;color:#555;">${j.email}</span></td>
+                  <td>${j.city || '—'}</td>
+                  <td>${j.job_type || '—'}</td>
+                  <td style="text-align:center">${j.screens_count || '—'}</td>
+                  <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                  <td>${j.payment_method || '—'}</td>
+                  <td style="text-align:right;font-weight:700;color:${j.revenue > 0 ? '#34d399' : '#555'}">
+                    ${j.revenue > 0 ? fmt$(j.revenue) : '—'}
+                  </td>
+                  <td style="font-size:12px;color:#555;max-width:200px">${j.notes || ''}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Materials + Inventory -->
+      <div class="section">
+        <div class="section-title">Materials — Purchase History</div>
+        <div class="materials-grid">
+          <table class="materials-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Vendor</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${materials.purchases.map(p => `
+                <tr>
+                  <td>${fmtDate(p.purchase_date)}</td>
+                  <td>${p.vendor || '—'}</td>
+                  <td style="font-size:12px;color:#555">${p.description || ''}</td>
+                  <td style="text-align:right;font-weight:600;color:#f87171">${fmt$(p.amount)}</td>
+                </tr>
+              `).join('')}
+              <tr style="border-top:2px solid #2dd4bf">
+                <td colspan="3" style="font-weight:700;color:#e0e0e0">Total Spent</td>
+                <td style="text-align:right;font-weight:700;color:#f87171">${fmt$(materials.total_spent)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="inventory-card">
+            <h3>Current Inventory</h3>
+            <div class="inv-row">
+              <div class="inv-label">Screen mesh</div>
+              <div class="inv-bar-wrap"><div class="inv-bar" style="width:75%"></div></div>
+              <div class="inv-val">~75 ft</div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-label">Spline</div>
+              <div class="inv-bar-wrap"><div class="inv-bar" style="width:75%"></div></div>
+              <div class="inv-val">~75 ft</div>
+            </div>
+            <div class="inv-note">
+              Estimated 0–5 jobs before restocking.<br>
+              Replenishment: $66.50 / 100 ft kit ($56 screen + $10.50 spline).<br>
+              Upcoming jobs: <strong>$0 materials cost</strong> until stock runs out.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('dashContent').innerHTML = html;
+  }
+
+  function fmt$(n) {
+    return '$' + parseFloat(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('T')[0].split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[m-1]} ${day}, ${y}`;
+  }
+</script>
+</body>
+</html>

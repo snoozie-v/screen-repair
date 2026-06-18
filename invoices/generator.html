@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screen Fix Pro — Invoice Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f4f4f5;
+      color: #1a1a1a;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── FORM PANEL ── */
+    .form-panel {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 32px 28px;
+      overflow-y: auto;
+    }
+
+    .form-panel h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2dd4bf;
+      margin-bottom: 4px;
+    }
+
+    .form-panel .subtitle {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #2dd4bf;
+      margin: 24px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #2d2d44;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 4px;
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      padding: 10px 12px;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #2dd4bf;
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 80px 90px; gap: 10px; }
+
+    /* Line items */
+    .line-items { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+    .line-item {
+      background: #12122a;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .line-item input {
+      margin-top: 0;
+      background: #1a1a2e;
+    }
+
+    .line-item .item-row {
+      display: grid;
+      grid-template-columns: 1fr 60px 80px 28px;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .line-item .item-label {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+      margin-top: 0;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      width: 28px;
+      text-align: center;
+      transition: color 0.15s;
+    }
+
+    .remove-btn:hover { color: #ef4444; }
+
+    .add-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .add-item-btn {
+      background: none;
+      border: 1px dashed #2d2d44;
+      border-radius: 6px;
+      color: #2dd4bf;
+      font-size: 12px;
+      padding: 9px 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .add-item-btn:hover { border-color: #2dd4bf; background: #12122a; }
+    .add-item-btn span { display: block; font-size: 10px; color: #555; margin-top: 2px; }
+    .add-item-btn.btn-window:hover { border-color: #60a5fa; color: #60a5fa; }
+    .add-item-btn.btn-door:hover   { border-color: #f59e0b; color: #f59e0b; }
+    .add-item-btn.btn-custom:hover { border-color: #a78bfa; color: #a78bfa; }
+
+    .price-hint {
+      font-size: 10px;
+      color: #444;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    /* Action buttons */
+    .actions { margin-top: 28px; display: flex; gap: 10px; }
+
+    .btn-print {
+      flex: 1;
+      background: #0d9488;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-print:hover { background: #0f766e; }
+
+    .btn-reset {
+      background: #2d2d44;
+      color: #aaa;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-reset:hover { background: #3a3a55; color: #e0e0e0; }
+
+    /* invoice number helper */
+    .inv-num-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .btn-next-num {
+      background: #2d2d44;
+      border: 1px solid #3a3a55;
+      border-radius: 6px;
+      color: #aaa;
+      font-size: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .btn-next-num:hover { background: #3a3a55; color: #e0e0e0; }
+
+    /* ── PREVIEW PANEL ── */
+    .preview-panel {
+      padding: 48px;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .invoice-sheet {
+      background: white;
+      width: 100%;
+      max-width: 760px;
+      min-height: 900px;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      padding: 60px;
+    }
+
+    /* Invoice styles (same as individual invoices) */
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 3px solid #0d9488;
+    }
+
+    .inv-brand h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0d9488;
+    }
+
+    .inv-brand p { font-size: 13px; color: #555; margin-top: 3px; }
+
+    .inv-meta { text-align: right; }
+    .inv-meta h3 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+
+    .inv-meta table { margin-top: 8px; font-size: 13px; }
+    .inv-meta td:first-child {
+      text-align: right;
+      padding-right: 10px;
+      color: #999;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .inv-meta td:last-child { font-weight: 600; color: #1a1a1a; }
+
+    .inv-parties {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .inv-party h4 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .inv-party p { font-size: 14px; line-height: 1.7; }
+
+    table.inv-lines {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 28px;
+    }
+
+    table.inv-lines thead tr {
+      background: #f0fdfa;
+      border-bottom: 2px solid #0d9488;
+    }
+
+    table.inv-lines th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #0d9488;
+    }
+
+    table.inv-lines th:last-child,
+    table.inv-lines td:last-child { text-align: right; }
+
+    table.inv-lines td {
+      padding: 13px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    table.inv-lines td .desc-sub { font-size: 12px; color: #777; margin-top: 2px; }
+
+    .inv-totals { display: flex; justify-content: flex-end; margin-bottom: 36px; }
+
+    .inv-totals table { font-size: 14px; min-width: 240px; }
+    .inv-totals td { padding: 5px 10px; }
+    .inv-totals td:first-child { color: #555; }
+    .inv-totals td:last-child { text-align: right; font-weight: 600; }
+
+    .inv-totals tr.grand td {
+      border-top: 2px solid #0d9488;
+      padding-top: 11px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #0d9488;
+    }
+
+    .inv-payment {
+      background: #f0fdfa;
+      border-left: 4px solid #0d9488;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .inv-payment h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #0d9488;
+      margin-bottom: 8px;
+    }
+
+    .inv-payment p { font-size: 14px; line-height: 1.6; }
+
+    .inv-notes { margin-bottom: 36px; }
+
+    .inv-notes h4 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 6px;
+    }
+
+    .inv-notes p { font-size: 13px; color: #555; line-height: 1.7; }
+
+    .inv-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: white; }
+      .form-panel { display: none; }
+      .app { display: block; }
+      .preview-panel { padding: 0; }
+      .invoice-sheet {
+        box-shadow: none;
+        border-radius: 0;
+        padding: 40px;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ FORM PANEL ══ -->
+  <div class="form-panel">
+    <h1>Screen Fix Pro</h1>
+    <p class="subtitle">Invoice Generator</p>
+
+    <!-- Invoice Info -->
+    <div class="section-label">Invoice Info</div>
+
+    <div class="inv-num-row">
+      <div>
+        <label>Invoice #</label>
+        <input type="text" id="invNumber" placeholder="SFP-2026-001">
+      </div>
+      <button class="btn-next-num" onclick="autoNumber()">Next #</button>
+    </div>
+
+    <label>Service Date</label>
+    <input type="date" id="invDate">
+
+    <!-- Customer -->
+    <div class="section-label">Customer</div>
+
+    <label>Full Name</label>
+    <input type="text" id="custName" placeholder="Stacy Stutelberg">
+
+    <label>Email</label>
+    <input type="email" id="custEmail" placeholder="email@example.com">
+
+    <label>Phone</label>
+    <input type="tel" id="custPhone" placeholder="(952) 000-0000">
+
+    <label>Address</label>
+    <input type="text" id="custAddr" placeholder="5420 Deerfield Circle SE">
+
+    <div class="row-3">
+      <div>
+        <label>City</label>
+        <input type="text" id="custCity" placeholder="Prior Lake">
+      </div>
+      <div>
+        <label>State</label>
+        <input type="text" id="custState" placeholder="MN" maxlength="2">
+      </div>
+      <div>
+        <label>ZIP</label>
+        <input type="text" id="custZip" placeholder="55372" maxlength="5">
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div class="section-label">Line Items</div>
+    <div class="line-items" id="lineItems"></div>
+    <div class="add-btns">
+      <button class="add-item-btn btn-window" onclick="addPreset('window')">
+        + Window<span>$40 · $35 ea (2+)</span>
+      </button>
+      <button class="add-item-btn btn-door" onclick="addPreset('door')">
+        + Door<span>$70 · $65 ea (2+)</span>
+      </button>
+      <button class="add-item-btn btn-custom" onclick="addPreset('custom')">
+        + Custom<span>manual price</span>
+      </button>
+    </div>
+
+    <!-- Payment -->
+    <div class="section-label">Payment</div>
+
+    <label>Status</label>
+    <select id="payStatus" onchange="togglePayRef()">
+      <option value="paid">Paid</option>
+      <option value="due">Due on Receipt</option>
+      <option value="net15">Net 15</option>
+      <option value="net30">Net 30</option>
+    </select>
+
+    <div id="payRefWrap">
+      <label>Method</label>
+      <select id="payMethod">
+        <option value="Check">Check</option>
+        <option value="Venmo">Venmo</option>
+        <option value="Cash">Cash</option>
+        <option value="Credit Card">Credit Card</option>
+      </select>
+
+      <label>Reference # (check #, etc.)</label>
+      <input type="text" id="payRef" placeholder="e.g. 1362">
+    </div>
+
+    <!-- Notes -->
+    <div class="section-label">Job Notes (optional)</div>
+    <textarea id="jobNotes" placeholder="e.g. 20 screens re-screened, rental prep for sale..."></textarea>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn-reset" onclick="resetForm()">Reset</button>
+    </div>
+  </div>
+
+  <!-- ══ PREVIEW PANEL ══ -->
+  <div class="preview-panel">
+    <div class="invoice-sheet" id="invoiceSheet">
+
+      <div class="inv-header">
+        <div class="inv-brand">
+          <h2>Screen Fix Pro</h2>
+          <p>Window &amp; Door Screen Repair — South Metro, MN</p>
+          <p>info@screenfixpro.com &nbsp;·&nbsp; EIN: 42-2268056</p>
+        </div>
+        <div class="inv-meta">
+          <h3>Invoice</h3>
+          <table>
+            <tr><td>Invoice #</td><td id="p-invNumber">—</td></tr>
+            <tr><td>Date</td><td id="p-invDate">—</td></tr>
+            <tr><td>Status</td><td id="p-status">—</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="inv-parties">
+        <div class="inv-party">
+          <h4>Billed To</h4>
+          <p id="p-customer">—</p>
+        </div>
+        <div class="inv-party" style="text-align:right">
+          <h4>Service Location</h4>
+          <p id="p-location">—</p>
+        </div>
+      </div>
+
+      <table class="inv-lines">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th style="text-align:right">Qty</th>
+            <th style="text-align:right">Unit Price</th>
+            <th style="text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="p-lineItems"></tbody>
+      </table>
+
+      <div class="inv-totals">
+        <table>
+          <tr><td>Subtotal</td><td id="p-subtotal">$0.00</td></tr>
+          <tr><td>Tax</td><td>$0.00</td></tr>
+          <tr class="grand"><td>Total</td><td id="p-total">$0.00</td></tr>
+        </table>
+      </div>
+
+      <div class="inv-payment" id="p-paymentBlock">
+        <h4 id="p-paymentTitle">Payment</h4>
+        <p id="p-paymentDetail">—</p>
+      </div>
+
+      <div class="inv-notes" id="p-notesBlock" style="display:none">
+        <h4>Job Notes</h4>
+        <p id="p-notes"></p>
+      </div>
+
+      <div class="inv-footer">
+        <p>Thank you for choosing Screen Fix Pro · South Metro Minnesota · info@screenfixpro.com</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── State ──
+  let items = [];
+  let itemCounter = 0;
+
+  // ── Init ──
+  window.addEventListener('DOMContentLoaded', () => {
+    setTodayDate();
+    autoNumber();
+    bindAll();
+  });
+
+  function setTodayDate() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    document.getElementById('invDate').value = `${y}-${m}-${day}`;
+  }
+
+  function autoNumber() {
+    const stored = parseInt(localStorage.getItem('sfp_inv_num') || '0') + 1;
+    localStorage.setItem('sfp_inv_num', stored);
+    const num = String(stored).padStart(3, '0');
+    const year = new Date().getFullYear();
+    document.getElementById('invNumber').value = `SFP-${year}-${num}`;
+    update();
+  }
+
+  function bindAll() {
+    const ids = ['invNumber','invDate','custName','custEmail','custPhone',
+                 'custAddr','custCity','custState','custZip',
+                 'payStatus','payMethod','payRef','jobNotes'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', update);
+      if (el && el.tagName === 'SELECT') el.addEventListener('change', update);
+    });
+  }
+
+  // ── Pricing rules ──
+  const PRICING = {
+    window: { single: 40, multi: 35 },
+    door:   { single: 70, multi: 65 },
+  };
+
+  function autoPrice(type, qty) {
+    const rule = PRICING[type];
+    if (!rule) return null;
+    return qty >= 2 ? rule.multi : rule.single;
+  }
+
+  function priceHint(type) {
+    if (type === 'window') return '$40 for 1 · $35 each for 2+';
+    if (type === 'door')   return '$70 for 1 · $65 each for 2+';
+    return '';
+  }
+
+  // ── Line Items ──
+  function addPreset(type) {
+    const id = ++itemCounter;
+    const descs = { window: 'Window Screen Re-screening', door: 'Door Screen Re-screening', custom: '' };
+    const qty = 1;
+    const price = autoPrice(type, qty) ?? 0;
+    items.push({ id, type, desc: descs[type] || '', qty, price, priceOverridden: false });
+    renderItems();
+  }
+
+  function removeItem(id) {
+    items = items.filter(i => i.id !== id);
+    renderItems();
+  }
+
+  function renderItems() {
+    const container = document.getElementById('lineItems');
+    container.innerHTML = '';
+    items.forEach(item => {
+      const hint = priceHint(item.type);
+      const typeColors = { window: '#60a5fa', door: '#f59e0b', custom: '#a78bfa' };
+      const typeColor = typeColors[item.type] || '#a78bfa';
+      const div = document.createElement('div');
+      div.className = 'line-item';
+      div.style.borderColor = typeColor + '44';
+      div.innerHTML = `
+        <label class="item-label" style="color:${typeColor}">
+          ${item.type === 'window' ? 'Window Screen' : item.type === 'door' ? 'Door Screen' : 'Custom'} — Description
+        </label>
+        <input type="text" value="${escHtml(item.desc)}" placeholder="e.g. Screen Re-screening"
+          onchange="updateItem(${item.id},'desc',this.value)" oninput="updateItem(${item.id},'desc',this.value)">
+        <div class="item-row">
+          <div>
+            <div class="item-label">Qty</div>
+            <input type="number" min="1" value="${item.qty}"
+              onchange="updateItem(${item.id},'qty',this.value)" oninput="updateItem(${item.id},'qty',this.value)">
+          </div>
+          <div>
+            <div class="item-label">Unit $</div>
+            <input type="number" min="0" step="0.01" value="${item.price}"
+              onchange="updateItem(${item.id},'price',this.value,true)" oninput="updateItem(${item.id},'price',this.value,true)">
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
+            <div style="font-size:13px;font-weight:600;color:#2dd4bf;min-width:70px;text-align:right;">
+              $${(item.qty * item.price).toFixed(2)}
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="remove-btn" onclick="removeItem(${item.id})">×</button>
+          </div>
+        </div>
+        ${hint ? `<div class="price-hint">${item.priceOverridden ? '✎ price overridden' : hint}</div>` : ''}
+      `;
+      container.appendChild(div);
+    });
+    update();
+  }
+
+  function updateItem(id, field, value, isManualPrice = false) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    if (field === 'qty') {
+      item.qty = parseFloat(value) || 0;
+      if (!item.priceOverridden) {
+        const suggested = autoPrice(item.type, item.qty);
+        if (suggested !== null) {
+          item.price = suggested;
+          renderItems();
+          return;
+        }
+      }
+    } else if (field === 'price') {
+      item.price = parseFloat(value) || 0;
+      if (isManualPrice) item.priceOverridden = true;
+    } else {
+      item[field] = value;
+    }
+    update();
+  }
+
+  function togglePayRef() {
+    const status = document.getElementById('payStatus').value;
+    document.getElementById('payRefWrap').style.display = status === 'paid' ? 'block' : 'none';
+    update();
+  }
+
+  // ── Update Preview ──
+  function update() {
+    // Invoice meta
+    set('p-invNumber', val('invNumber') || '—');
+
+    const dateRaw = val('invDate');
+    set('p-invDate', dateRaw ? formatDate(dateRaw) : '—');
+
+    const status = val('payStatus');
+    const statusLabels = { paid: 'Paid', due: 'Due on Receipt', net15: 'Net 15', net30: 'Net 30' };
+    set('p-status', statusLabels[status] || '—');
+
+    // Customer
+    const name = val('custName');
+    const email = val('custEmail');
+    const phone = val('custPhone');
+    const addr = val('custAddr');
+    const city = val('custCity');
+    const state = val('custState');
+    const zip = val('custZip');
+
+    let custLines = [];
+    if (name) custLines.push(`<strong>${escHtml(name)}</strong>`);
+    if (addr) custLines.push(escHtml(addr));
+    if (city || state || zip) custLines.push([city, state ? state + (zip ? ' ' + zip : '') : zip].filter(Boolean).join(', '));
+    if (email) custLines.push(escHtml(email));
+    if (phone) custLines.push(formatPhone(phone));
+    setHtml('p-customer', custLines.length ? custLines.join('<br>') : '—');
+
+    let locLines = [];
+    if (addr) locLines.push(escHtml(addr));
+    if (city || state || zip) locLines.push([city, state ? state + (zip ? ' ' + zip : '') : zip].filter(Boolean).join(', '));
+    setHtml('p-location', locLines.length ? locLines.join('<br>') : '—');
+
+    // Line items
+    const tbody = document.getElementById('p-lineItems');
+    tbody.innerHTML = '';
+    let subtotal = 0;
+    items.forEach(item => {
+      const amount = (item.qty || 0) * (item.price || 0);
+      subtotal += amount;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escHtml(item.desc || 'Item')}</strong></td>
+        <td style="text-align:right">${item.qty}</td>
+        <td style="text-align:right">$${(item.price || 0).toFixed(2)}</td>
+        <td style="text-align:right">$${amount.toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    set('p-subtotal', '$' + subtotal.toFixed(2));
+    set('p-total', '$' + subtotal.toFixed(2));
+
+    // Payment block
+    const method = val('payMethod');
+    const ref = val('payRef');
+    const dateStr = dateRaw ? formatDate(dateRaw) : 'the service date';
+
+    if (status === 'paid') {
+      set('p-paymentTitle', 'Payment Received');
+      let detail = `<strong>$${subtotal.toFixed(2)}</strong> received via <strong>${escHtml(method)}</strong>`;
+      if (ref) detail += ` — ${escHtml(method === 'Check' ? 'Check #' : 'Ref: ')}${escHtml(ref)}`;
+      detail += ` on ${dateStr}. Thank you!`;
+      setHtml('p-paymentDetail', detail);
+    } else {
+      set('p-paymentTitle', 'Payment Due');
+      const dueLabels = { due: 'Due upon receipt.', net15: 'Due within 15 days.', net30: 'Due within 30 days.' };
+      setHtml('p-paymentDetail', `<strong>$${subtotal.toFixed(2)}</strong> — ${dueLabels[status] || ''}`);
+    }
+
+    // Notes
+    const notes = val('jobNotes').trim();
+    if (notes) {
+      document.getElementById('p-notesBlock').style.display = 'block';
+      set('p-notes', notes);
+    } else {
+      document.getElementById('p-notesBlock').style.display = 'none';
+    }
+  }
+
+  // ── Helpers ──
+  function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+  function set(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+  function setHtml(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    return `${months[m-1]} ${d}, ${y}`;
+  }
+
+  function formatPhone(p) {
+    const digits = p.replace(/\D/g, '');
+    if (digits.length === 10) return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+    return p;
+  }
+
+  function resetForm() {
+    if (!confirm('Clear all fields and start a new invoice?')) return;
+    ['custName','custEmail','custPhone','custAddr','custCity','custState',
+     'custZip','payRef','jobNotes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('payStatus').value = 'paid';
+    document.getElementById('payMethod').value = 'Check';
+    items = [];
+    itemCounter = 0;
+    setTodayDate();
+    autoNumber();
+    renderItems();
+    togglePayRef();
+  }
+
+  // Init toggle
+  togglePayRef();
+</script>
+</body>
+</html>
