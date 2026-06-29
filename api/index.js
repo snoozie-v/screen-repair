@@ -581,4 +581,88 @@ app.get('/api/report', async (req, res) => {
   }
 });
 
+// --- Admin API middleware ---
+
+function requireAdmin(req, res, next) {
+  const key = req.headers['x-admin-key'] || req.query.key;
+  if (!key || key !== process.env.ADMIN_KEY) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+// GET /api/jobs
+app.get('/api/jobs', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT j.*, s.name, s.email, s.phone_number, s.city, s.street_address, s.zipcode,
+             s.job_description, s.created_at AS lead_date
+      FROM jobs j
+      JOIN subscribers s ON s.id = j.subscriber_id
+      ORDER BY j.completed_date DESC, j.id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /api/jobs error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// GET /api/leads
+app.get('/api/leads', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM subscribers ORDER BY created_at DESC`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /api/leads error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /api/jobs
+app.post('/api/jobs', requireAdmin, async (req, res) => {
+  const { subscriber_id, status, completed_date, revenue, materials_cost, screens_count, job_type, payment_method, invoice_number, notes } = req.body;
+  if (!subscriber_id || !status) return res.status(400).json({ error: 'subscriber_id and status are required' });
+  try {
+    const result = await pool.query(
+      `INSERT INTO jobs (subscriber_id, status, completed_date, revenue, materials_cost, screens_count, job_type, payment_method, invoice_number, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [subscriber_id, status, completed_date || null, revenue || null, materials_cost || null, screens_count || null, job_type || null, payment_method || null, invoice_number || null, notes || null]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /api/jobs error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// PATCH /api/jobs/:id
+app.patch('/api/jobs/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { status, completed_date, revenue, materials_cost, screens_count, job_type, payment_method, invoice_number, notes } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE jobs SET status=$1, completed_date=$2, revenue=$3, materials_cost=$4,
+        screens_count=$5, job_type=$6, payment_method=$7, invoice_number=$8, notes=$9
+       WHERE id=$10 RETURNING *`,
+      [status, completed_date || null, revenue || null, materials_cost || null, screens_count || null, job_type || null, payment_method || null, invoice_number || null, notes || null, id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Job not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PATCH /api/jobs error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// DELETE /api/jobs/:id
+app.delete('/api/jobs/:id', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`DELETE FROM jobs WHERE id=$1 RETURNING id`, [req.params.id]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Job not found' });
+    res.json({ deleted: result.rows[0].id });
+  } catch (err) {
+    console.error('DELETE /api/jobs error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = app;
