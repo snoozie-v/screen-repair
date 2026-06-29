@@ -11,7 +11,34 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 const cors = require('cors');
-app.use(cors())
+const rateLimit = require('express-rate-limit');
+
+const allowedOrigins = [
+  'https://www.screenfixpro.com',
+  'https://screenfixpro.com',
+];
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow requests with no origin (curl, Vercel server-side, same-origin) and allowed list
+    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
+// Rate limit all admin API routes: 30 requests per 15 minutes per IP
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Try again later.' },
+});
+app.use('/api/jobs', adminLimiter);
+app.use('/api/leads', adminLimiter);
+app.use('/api/report', adminLimiter);
 
 const pg = require('pg');
 const { Pool } = pg
@@ -521,7 +548,7 @@ app.get('/api/lead/reject', async (req, res) => {
 // --- Admin report endpoint ---
 
 app.get('/api/report', async (req, res) => {
-  const key = req.query.key;
+  const key = req.headers['x-admin-key'];
   if (!key || key !== process.env.ADMIN_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -584,7 +611,7 @@ app.get('/api/report', async (req, res) => {
 // --- Admin API middleware ---
 
 function requireAdmin(req, res, next) {
-  const key = req.headers['x-admin-key'] || req.query.key;
+  const key = req.headers['x-admin-key'];
   if (!key || key !== process.env.ADMIN_KEY) return res.status(401).json({ error: 'Unauthorized' });
   next();
 }

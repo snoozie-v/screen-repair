@@ -158,7 +158,7 @@
 
   async function loadReport() {
     try {
-      const res = await fetch(`${API_BASE}/api/report?key=${encodeURIComponent(ADMIN_KEY)}`);
+      const res = await fetch(`${API_BASE}/api/report`, { headers: { 'x-admin-key': ADMIN_KEY } });
       if (res.status === 401) { showLoginError('Incorrect admin key.'); return; }
       if (!res.ok) throw new Error('API error');
       const data = await res.json();
