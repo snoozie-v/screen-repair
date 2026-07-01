@@ -131,7 +131,9 @@ ul li {
 }
 
 .btn-cta {
-    display: inline-block;
+    display: block;
+    width: fit-content;
+    margin: 20px auto 8px;
     background: var(--primary-color);
     color: #ffffff;
     padding: 14px 32px;
@@ -139,7 +141,7 @@ ul li {
     font-size: 1rem;
     font-weight: 700;
     text-decoration: none;
-    margin: 20px 0 8px;
+    text-align: center;
     transition: background 0.2s;
 }
 .btn-cta:hover {
