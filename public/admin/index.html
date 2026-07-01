@@ -725,45 +725,72 @@
   let reviewingJobId = null;
 
   function renderOutreach() {
-    const completed = allJobs.filter(j => j.status === 'completed');
-    const withEmail = completed.filter(j => j.email);
-    const sent = withEmail.filter(j => j.review_requested_at);
-    const reviewed = completed.filter(j => j.reviewed_at);
+    const completed = allJobs.filter(j => j.status === 'completed' && j.email);
+
+    // Group by email so repeat customers (e.g. Stacy) appear as one row
+    const customerMap = {};
+    completed.forEach(j => {
+      const key = j.email.toLowerCase();
+      if (!customerMap[key]) {
+        customerMap[key] = { name: j.name, email: j.email, jobs: [], ids: [], review_requested_at: null, reviewed_at: null };
+      }
+      const c = customerMap[key];
+      c.jobs.push(j);
+      c.ids.push(j.id);
+      if (j.review_requested_at && (!c.review_requested_at || j.review_requested_at > c.review_requested_at))
+        c.review_requested_at = j.review_requested_at;
+      if (j.reviewed_at && (!c.reviewed_at || j.reviewed_at > c.reviewed_at))
+        c.reviewed_at = j.reviewed_at;
+    });
+
+    const customers = Object.values(customerMap);
+    const sent = customers.filter(c => c.review_requested_at).length;
+    const reviewed = customers.filter(c => c.reviewed_at).length;
+    const notAsked = customers.filter(c => !c.review_requested_at && !c.reviewed_at).length;
 
     document.getElementById('outreachStats').innerHTML =
-      `<div><strong>${withEmail.length}</strong> customers eligible</div>
-       <div><strong>${sent.length}</strong> requests sent</div>
-       <div><strong>${reviewed.length}</strong> reviews received</div>
-       <div><strong>${withEmail.length - sent.length}</strong> not yet asked</div>`;
+      `<div><strong>${customers.length}</strong> customers eligible</div>
+       <div><strong>${sent}</strong> requests sent</div>
+       <div><strong>${reviewed}</strong> reviews received</div>
+       <div><strong>${notAsked}</strong> not yet asked</div>`;
 
     const tbody = document.getElementById('outreachBody');
-    if (!withEmail.length) {
+    if (!customers.length) {
       tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No completed jobs with emails.</td></tr>';
       return;
     }
 
-    // Sort: reviewed first, then sent+pending, then unsent
-    const sorted = [...withEmail].sort((a, b) => {
+    // Sort: reviewed first, then sent, then unsent
+    customers.sort((a, b) => {
       if (a.reviewed_at && !b.reviewed_at) return -1;
       if (!a.reviewed_at && b.reviewed_at) return 1;
-      if (!a.review_requested_at && b.review_requested_at) return 1;
       if (a.review_requested_at && !b.review_requested_at) return -1;
+      if (!a.review_requested_at && b.review_requested_at) return 1;
       return 0;
     });
 
-    tbody.innerHTML = sorted.map(j => {
-      const requestCell = j.review_requested_at
-        ? `<div class="sent-label"><span>✓</span>Sent ${fmtDate(j.review_requested_at)}</div>`
-        : `<button class="btn-send" onclick="openReviewModal(${j.id})">Send Request</button>`;
-      const reviewCell = j.reviewed_at
-        ? `<div class="reviewed-label">⭐ Reviewed ${fmtDate(j.reviewed_at)}</div>`
-        : `<button class="btn-mark-reviewed" onclick="markReviewed(${j.id})">Mark Reviewed</button>`;
+    tbody.innerHTML = customers.map(c => {
+      const jobsLabel = c.jobs.map(j => jobSummaryLabel(j)).join(' · ');
+      const latestDate = c.jobs.reduce((latest, j) =>
+        (!latest || j.completed_date > latest) ? j.completed_date : latest, null);
+
+      // Don't show Send Request if already reviewed — no point asking
+      const requestCell = c.reviewed_at
+        ? `<span class="muted">—</span>`
+        : c.review_requested_at
+          ? `<div class="sent-label"><span>✓</span>Sent ${fmtDate(c.review_requested_at)}</div>`
+          : `<button class="btn-send" onclick="openReviewModal(${c.ids[0]})">Send Request</button>`;
+
+      const reviewCell = c.reviewed_at
+        ? `<div class="reviewed-label">⭐ Reviewed ${fmtDate(c.reviewed_at)}</div>`
+        : `<button class="btn-mark-reviewed" onclick="markReviewed([${c.ids.join(',')}])">Mark Reviewed</button>`;
+
       return `
         <tr>
-          <td><strong>${escHtml(j.name)}</strong></td>
-          <td style="font-size:12px">${escHtml(j.email)}</td>
-          <td style="font-size:12px">${jobSummaryLabel(j)}</td>
-          <td>${fmtDate(j.completed_date)}</td>
+          <td><strong>${escHtml(c.name)}</strong></td>
+          <td style="font-size:12px">${escHtml(c.email)}</td>
+          <td style="font-size:12px">${escHtml(jobsLabel)}</td>
+          <td>${fmtDate(latestDate)}</td>
           <td>${requestCell}</td>
           <td>${reviewCell}</td>
         </tr>
@@ -861,11 +888,14 @@ Screen Fix Pro`;
     btn.textContent = 'Send Email';
   }
 
-  async function markReviewed(jobId) {
+  async function markReviewed(ids) {
+    if (!Array.isArray(ids)) ids = [ids];
     try {
-      const result = await apiFetch(`/api/jobs/${jobId}/mark-reviewed`, { method: 'POST' });
-      const idx = allJobs.findIndex(j => j.id === jobId);
-      if (idx !== -1) allJobs[idx].reviewed_at = result.reviewed_at;
+      const results = await Promise.all(ids.map(id => apiFetch(`/api/jobs/${id}/mark-reviewed`, { method: 'POST' })));
+      ids.forEach((id, i) => {
+        const idx = allJobs.findIndex(j => j.id === id);
+        if (idx !== -1) allJobs[idx].reviewed_at = results[i].reviewed_at;
+      });
       renderOutreach();
     } catch (e) {
       alert('Could not mark as reviewed. Try again.');
