@@ -113,6 +113,18 @@
 
     /* Leads table extras */
     .lead-desc { font-size: 11px; color: #555; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Outreach */
+    .outreach-stats { display: flex; gap: 20px; margin-bottom: 20px; font-size: 13px; color: #555; }
+    .outreach-stats strong { color: #2dd4bf; }
+    .btn-send { background: #064e3b; color: #34d399; border: 1px solid #065f46; border-radius: 6px; padding: 5px 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn-send:hover { background: #065f46; }
+    .sent-label { font-size: 12px; color: #555; white-space: nowrap; }
+    .sent-label span { color: #34d399; margin-right: 4px; }
+    .no-email { font-size: 12px; color: #3a3a55; font-style: italic; }
+
+    /* Review modal extras */
+    .review-to { font-size: 13px; color: #2dd4bf; background: #12122a; border: 1px solid #2d2d44; border-radius: 6px; padding: 9px 11px; }
   </style>
 </head>
 <body>
@@ -136,6 +148,7 @@
     <div class="topbar-tabs">
       <button class="tab-btn active" onclick="switchTab('jobs')" id="tab-jobs">Jobs</button>
       <button class="tab-btn" onclick="switchTab('leads')" id="tab-leads">Leads</button>
+      <button class="tab-btn" onclick="switchTab('outreach')" id="tab-outreach">Outreach</button>
     </div>
     <button class="btn-logout" onclick="logout()">Sign Out</button>
   </div>
@@ -172,6 +185,28 @@
       </div>
     </div>
 
+    <!-- Outreach Tab -->
+    <div class="tab-panel" id="panel-outreach">
+      <div class="outreach-stats" id="outreachStats"></div>
+      <div class="toolbar">
+        <button class="btn-ghost" onclick="renderOutreach()">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Job</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="outreachBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Leads Tab -->
     <div class="tab-panel" id="panel-leads">
       <div class="toolbar">
@@ -199,6 +234,37 @@
           <tbody id="leadsBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review Request Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Send Review Request</h2>
+      <button class="btn-close" onclick="closeReviewModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-error" id="reviewModalError"></div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>To</label>
+          <div class="review-to" id="rTo"></div>
+        </div>
+        <div class="form-group full">
+          <label>Subject</label>
+          <input type="text" id="rSubject">
+        </div>
+        <div class="form-group full">
+          <label>Message</label>
+          <textarea id="rBody" style="min-height:220px;line-height:1.6"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeReviewModal()">Cancel</button>
+      <button class="btn-primary" onclick="sendReviewRequest()" id="reviewSendBtn">Send Email</button>
     </div>
   </div>
 </div>
@@ -381,6 +447,7 @@
     document.getElementById('panel-' + tab).classList.add('active');
     document.getElementById('tab-' + tab).classList.add('active');
     if (tab === 'leads' && allLeads.length === 0) loadLeads();
+    if (tab === 'outreach') renderOutreach();
   }
 
   // ── Jobs ──
@@ -645,6 +712,142 @@
   document.getElementById('jobModal').addEventListener('click', e => {
     if (e.target === document.getElementById('jobModal')) closeModal();
   });
+  document.getElementById('reviewModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('reviewModal')) closeReviewModal();
+  });
+
+  // ── Outreach ──
+
+  let reviewingJobId = null;
+
+  function renderOutreach() {
+    const completed = allJobs.filter(j => j.status === 'completed');
+    const withEmail = completed.filter(j => j.email);
+    const sent = withEmail.filter(j => j.review_requested_at);
+
+    document.getElementById('outreachStats').innerHTML =
+      `<div><strong>${withEmail.length}</strong> customers eligible</div>
+       <div><strong>${sent.length}</strong> review requests sent</div>
+       <div><strong>${withEmail.length - sent.length}</strong> not yet asked</div>`;
+
+    const tbody = document.getElementById('outreachBody');
+    if (!withEmail.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No completed jobs with emails.</td></tr>';
+      return;
+    }
+
+    // Sort: unsent first, then sent
+    const sorted = [...withEmail].sort((a, b) => {
+      if (!a.review_requested_at && b.review_requested_at) return -1;
+      if (a.review_requested_at && !b.review_requested_at) return 1;
+      return 0;
+    });
+
+    tbody.innerHTML = sorted.map(j => {
+      const action = j.review_requested_at
+        ? `<div class="sent-label"><span>✓</span>Sent ${fmtDate(j.review_requested_at)}</div>`
+        : `<button class="btn-send" onclick="openReviewModal(${j.id})">Send Request</button>`;
+      return `
+        <tr>
+          <td><strong>${escHtml(j.name)}</strong></td>
+          <td style="font-size:12px">${escHtml(j.email)}</td>
+          <td style="font-size:12px">${jobSummaryLabel(j)}</td>
+          <td>${fmtDate(j.completed_date)}</td>
+          <td>${action}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function jobSummaryLabel(j) {
+    const n = j.screens_count || 1;
+    if (n > 1) {
+      if (j.job_type === 'door') return `${n} screen doors`;
+      if (j.job_type === 'mixed') return `${n} screens & doors`;
+      return `${n} window screens`;
+    }
+    if (j.job_type === 'door') return '1 screen door';
+    if (j.job_type === 'repair') return 'screen repair';
+    return '1 window screen';
+  }
+
+  function jobActionPhrase(j) {
+    const n = j.screens_count || 1;
+    if (n > 1) {
+      if (j.job_type === 'door') return `rescreened your ${n} screen doors`;
+      if (j.job_type === 'mixed') return `rescreened your ${n} screens and doors`;
+      return `rescreened your ${n} window screens`;
+    }
+    if (j.job_type === 'door') return 'rescreened your screen door';
+    if (j.job_type === 'repair') return 'repaired your screen';
+    return 'replaced your window screen';
+  }
+
+  function openReviewModal(jobId) {
+    const job = allJobs.find(j => j.id === jobId);
+    if (!job) return;
+    reviewingJobId = jobId;
+
+    const firstName = job.name.split(' ')[0];
+    const action = jobActionPhrase(job);
+    const month = job.completed_date ? fmtDate(job.completed_date).split(' ')[0] : 'recently';
+
+    document.getElementById('rTo').textContent = `${job.name} <${job.email}>`;
+    document.getElementById('rSubject').value = 'Quick favor — Screen Fix Pro';
+    document.getElementById('rBody').value =
+`Hi ${firstName},
+
+This is Chris from Screen Fix Pro — I came out and ${action} back in ${month}.
+
+I'm trying to grow the business and Google reviews make a big difference. If you had a good experience, would you be willing to leave a quick one? It takes about a minute:
+
+https://g.page/r/CXz2NDZsecheEBM/review
+
+No pressure at all — just wanted to ask. Thanks again for your business.
+
+Chris
+Screen Fix Pro`;
+
+    document.getElementById('reviewModalError').style.display = 'none';
+    document.getElementById('reviewModal').classList.add('open');
+  }
+
+  function closeReviewModal() {
+    document.getElementById('reviewModal').classList.remove('open');
+    reviewingJobId = null;
+  }
+
+  async function sendReviewRequest() {
+    const btn = document.getElementById('reviewSendBtn');
+    const errEl = document.getElementById('reviewModalError');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    const job = allJobs.find(j => j.id === reviewingJobId);
+    try {
+      const result = await apiFetch('/api/review-request', {
+        method: 'POST',
+        body: JSON.stringify({
+          job_id: reviewingJobId,
+          to_email: job.email,
+          to_name: job.name,
+          subject: document.getElementById('rSubject').value,
+          body: document.getElementById('rBody').value,
+        })
+      });
+      // Update local job record so UI reflects sent state immediately
+      const idx = allJobs.findIndex(j => j.id === reviewingJobId);
+      if (idx !== -1) allJobs[idx].review_requested_at = result.review_requested_at;
+      closeReviewModal();
+      renderOutreach();
+    } catch (e) {
+      errEl.textContent = 'Failed to send. Check your connection and try again.';
+      errEl.style.display = 'block';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Send Email';
+  }
 </script>
 </body>
 </html>

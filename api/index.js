@@ -39,6 +39,7 @@ const adminLimiter = rateLimit({
 app.use('/api/jobs', adminLimiter);
 app.use('/api/leads', adminLimiter);
 app.use('/api/report', adminLimiter);
+app.use('/api/review-request', adminLimiter);
 
 const pg = require('pg');
 const { Pool } = pg
@@ -677,6 +678,30 @@ app.patch('/api/jobs/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('PATCH /api/jobs error:', err.message);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /api/review-request
+app.post('/api/review-request', requireAdmin, async (req, res) => {
+  const { job_id, to_email, to_name, subject, body } = req.body;
+  if (!job_id || !to_email || !subject || !body) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    await transporter.sendMail({
+      from: `Chris @ Screen Fix Pro <${process.env.SMTP_USER}>`,
+      to: `${to_name} <${to_email}>`,
+      subject,
+      text: body
+    });
+    const result = await pool.query(
+      `UPDATE jobs SET review_requested_at = NOW() WHERE id = $1 RETURNING review_requested_at`,
+      [job_id]
+    );
+    res.json({ sent: true, review_requested_at: result.rows[0]?.review_requested_at });
+  } catch (err) {
+    console.error('Review request error:', err.message);
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
