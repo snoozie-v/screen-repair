@@ -705,6 +705,21 @@ app.post('/api/review-request', requireAdmin, async (req, res) => {
   }
 });
 
+// POST /api/jobs/:id/mark-reviewed
+app.post('/api/jobs/:id/mark-reviewed', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `UPDATE jobs SET reviewed_at = NOW() WHERE id = $1 RETURNING reviewed_at`,
+      [req.params.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Job not found' });
+    res.json({ reviewed_at: result.rows[0].reviewed_at });
+  } catch (err) {
+    console.error('mark-reviewed error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // DELETE /api/jobs/:id
 app.delete('/api/jobs/:id', requireAdmin, async (req, res) => {
   try {
