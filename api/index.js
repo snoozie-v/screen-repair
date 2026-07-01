@@ -96,6 +96,11 @@ const regionLabels = {
   lakeville: 'Lakeville',
   burnsville: 'Burnsville',
   bloomington: 'Bloomington',
+  'apple-valley': 'Apple Valley',
+  eagan: 'Eagan',
+  shakopee: 'Shakopee',
+  'prior-lake': 'Prior Lake',
+  savage: 'Savage',
   carlos: 'Carlos/Alexandria',
   main: 'South Metro (general)'
 };
